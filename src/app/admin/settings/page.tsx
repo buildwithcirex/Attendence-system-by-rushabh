@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowLeft, Plus, ShieldAlert } from "lucide-react";
+import { GradientBackground } from "@/components/GradientBackground";
 
 type OptionRow = { id: string; name: string; is_active: boolean };
 type OptionType = "branches" | "years" | "positions";
@@ -123,7 +124,7 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="min-h-screen p-4 md:p-8 flex flex-col relative overflow-hidden text-white bg-[#0a0a0a]">
-      <div className="absolute top-[-25%] left-1/2 -translate-x-1/2 w-[60%] h-[50%] rounded-full bg-white/[0.03] blur-[160px] -z-10" />
+      <GradientBackground />
 
       <header className="flex justify-between items-center mb-6 glass-card rounded-2xl p-4 px-6">
         <div>

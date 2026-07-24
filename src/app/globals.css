@@ -151,6 +151,65 @@ h2 {
   color: var(--color-muted);
 }
 
+/*
+  Animated mesh-gradient background — slow-drifting blurred blobs in the
+  monochrome palette with a single blue accent. Sits behind page content
+  (z-index: -1) and only animates compositor-friendly transforms.
+*/
+.gradient-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.gradient-bg > span {
+  position: absolute;
+  display: block;
+  border-radius: 9999px;
+  filter: blur(70px);
+  will-change: transform;
+}
+.gradient-bg .blob-1 {
+  width: 55vw;
+  height: 55vw;
+  left: -8vw;
+  top: -12vw;
+  background: radial-gradient(circle at center, rgba(61, 125, 255, 0.28), transparent 72%);
+  animation: drift-1 16s ease-in-out infinite;
+}
+.gradient-bg .blob-2 {
+  width: 48vw;
+  height: 48vw;
+  right: -8vw;
+  top: 0;
+  background: radial-gradient(circle at center, rgba(120, 95, 255, 0.22), transparent 70%);
+  animation: drift-2 20s ease-in-out infinite;
+}
+.gradient-bg .blob-3 {
+  width: 52vw;
+  height: 52vw;
+  left: 22vw;
+  bottom: -24vw;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1), transparent 72%);
+  animation: drift-3 18s ease-in-out infinite;
+}
+
+@keyframes drift-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(26vw, 16vw) scale(1.25); }
+  66% { transform: translate(14vw, -12vw) scale(0.9); }
+}
+@keyframes drift-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-30vw, 18vw) scale(1.3); }
+}
+@keyframes drift-3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  40% { transform: translate(-24vw, -18vw) scale(1.2); }
+  75% { transform: translate(18vw, 10vw) scale(0.85); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .btn-primary,
   .btn-secondary {
@@ -159,6 +218,9 @@ h2 {
   .btn-primary:active:not(:disabled),
   .btn-secondary:active:not(:disabled) {
     transform: none;
+  }
+  .gradient-bg > span {
+    animation: none;
   }
 }
 

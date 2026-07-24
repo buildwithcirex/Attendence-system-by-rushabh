@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { UserPlus, Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { GradientBackground } from "@/components/GradientBackground";
 
 type Option = { id: string; name: string };
 
@@ -92,7 +93,7 @@ export default function RegisterPage() {
   if (success) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-[#0a0a0a]">
-        <div className="absolute top-[-15%] left-1/2 -translate-x-1/2 w-[60%] h-[45%] rounded-full bg-emerald-500/10 blur-[140px]" />
+        <GradientBackground />
         <div className="w-full max-w-md glass-card rounded-2xl p-8 relative z-10 text-center">
           <div className="w-16 h-16 rounded-2xl bg-emerald-500/15 flex items-center justify-center mx-auto mb-4 border border-emerald-500/40">
             <UserPlus className="w-8 h-8 text-emerald-400" />
@@ -114,7 +115,7 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex flex-col p-4 relative overflow-y-auto overflow-x-hidden bg-[#0a0a0a]">
-      <div className="absolute top-[-10%] right-[-5%] w-[45%] h-[40%] rounded-full bg-white/[0.035] blur-[140px]" />
+      <GradientBackground />
 
       <div className="w-full max-w-2xl mx-auto pt-8 pb-16 relative z-10">
         <Link href="/" className="inline-flex items-center text-muted hover:text-white transition-colors mb-6">
