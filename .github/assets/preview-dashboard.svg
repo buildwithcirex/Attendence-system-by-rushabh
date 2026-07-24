@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 520" width="760" height="520" fill="none" role="img" aria-label="Dashboard session timer preview">
+  <defs>
+    <radialGradient id="dglow" cx="50%" cy="30%" r="60%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="track"><rect x="230" y="360" width="300" height="8" rx="4"/></clipPath>
+    <style>
+      @keyframes colon { 0%,49% { opacity: 1 } 50%,100% { opacity: 0.25 } }
+      @keyframes grow  { 0% { width: 40px } 100% { width: 300px } }
+      @keyframes halo  { 0%,100% { opacity: 0.15 } 50% { opacity: 0.4 } }
+      .colon { animation: colon 1s step-end infinite; }
+      .bar   { animation: grow 8s linear infinite; }
+      .halo  { animation: halo 3s ease-in-out infinite; }
+      text { font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+      .mono { font-family: ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace; }
+    </style>
+  </defs>
+
+  <rect width="760" height="520" fill="#0a0a0a"/>
+  <rect width="760" height="520" fill="url(#dglow)"/>
+
+  <!-- header bar -->
+  <g transform="translate(40 30)">
+    <rect width="680" height="60" rx="16" fill="#141414" stroke="#ffffff" stroke-opacity="0.08"/>
+    <rect x="18" y="15" width="30" height="30" rx="9" fill="#1c1c1c" stroke="#ffffff" stroke-opacity="0.14"/>
+    <path d="M33 22 l8 4 v6 c0 5 -4 8 -8 9 c-4 -1 -8 -4 -8 -9 v-6 z" fill="#f2f2f2"/>
+    <text x="60" y="32" font-size="14" font-weight="700" fill="#f2f2f2">E-Cell Portal</text>
+    <text x="60" y="48" font-size="10" fill="#9b9b9b">Active Session</text>
+
+    <rect x="470" y="14" width="118" height="32" rx="16" fill="#1c1c1c" stroke="#ffffff" stroke-opacity="0.08"/>
+    <text x="529" y="34" text-anchor="middle" font-size="11" fill="#f2f2f2">Aditi Sharma</text>
+    <rect x="600" y="14" width="62" height="32" rx="10" fill="#ffffff" fill-opacity="0.05" stroke="#ffffff" stroke-opacity="0.08"/>
+    <text x="631" y="34" text-anchor="middle" font-size="11" fill="#f2f2f2">Exit</text>
+  </g>
+
+  <!-- timer card -->
+  <g transform="translate(40 120)">
+    <rect width="680" height="360" rx="24" fill="#141414" stroke="#ffffff" stroke-opacity="0.08"/>
+
+    <!-- pill -->
+    <rect x="278" y="46" width="124" height="30" rx="15" fill="#1c1c1c" stroke="#ffffff" stroke-opacity="0.08"/>
+    <circle cx="300" cy="61" r="6" fill="none" stroke="#9b9b9b" stroke-width="2"/>
+    <path d="M300 57 v4 l3 2" stroke="#9b9b9b" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <text x="352" y="65" text-anchor="middle" font-size="10" letter-spacing="2" fill="#9b9b9b">SESSION TIMER</text>
+
+    <!-- big time -->
+    <ellipse class="halo" cx="340" cy="150" rx="220" ry="60" fill="#ffffff"/>
+    <text x="340" y="178" text-anchor="middle" font-size="92" font-weight="700" letter-spacing="-4" class="mono" fill="#f2f2f2">01<tspan class="colon">:</tspan>24<tspan class="colon">:</tspan>37</text>
+  </g>
+
+  <!-- progress bar (relative to dashboard, absolute coords) -->
+  <rect x="230" y="360" width="300" height="8" rx="4" fill="#1c1c1c" stroke="#ffffff" stroke-opacity="0.08"/>
+  <g clip-path="url(#track)">
+    <rect class="bar" x="230" y="360" height="8" fill="#f2f2f2" fill-opacity="0.85"/>
+  </g>
+  <text x="230" y="392" font-size="10" fill="#9b9b9b">Time In: 09:14 AM</text>
+  <text x="530" y="392" text-anchor="end" font-size="10" fill="#9b9b9b">Max: 4h limit</text>
+</svg>
