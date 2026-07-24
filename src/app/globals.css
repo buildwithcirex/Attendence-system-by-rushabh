@@ -1,26 +1,170 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+  Gilroy — self-hosted. Drop the .woff2 files into /public/fonts (see fonts/README.md).
+  font-display: swap keeps the UI usable and falls back cleanly until the files are present.
+*/
+@font-face {
+  font-family: 'Gilroy';
+  src: url('/fonts/Gilroy-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Gilroy';
+  src: url('/fonts/Gilroy-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Gilroy';
+  src: url('/fonts/Gilroy-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Gilroy';
+  src: url('/fonts/Gilroy-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Gilroy';
+  src: url('/fonts/Gilroy-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Gilroy';
+  src: url('/fonts/Gilroy-ExtraBold.woff2') format('woff2');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@theme {
+  /* Cursor-inspired near-black, monochrome surfaces */
+  --color-background: #0a0a0a;
+  --color-surface: #141414;
+  --color-surface-2: #1c1c1c;
+  --color-surface-3: #262626;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-foreground: #f2f2f2;
+  --color-muted: #9b9b9b;
+  --color-faint: #6a6a6a;
+
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-strong: rgba(255, 255, 255, 0.14);
+
+  /* Restrained accent — used only for focus, active state and links */
+  --color-accent: #e8e8e8;
+  --color-focus: #3d7dff;
+  --color-focus-glow: rgba(61, 125, 255, 0.35);
+
+  --font-sans: 'Gilroy', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.01em;
+}
+
+/* Size-specific tracking: large text reads too loose, so tighten it (apple-design §15) */
+h1, .display {
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+}
+h2 {
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+
+/* Cursor-style card: a heavy, near-opaque dark material — not a light glass pane */
+.glass-card {
+  background: rgba(20, 20, 20, 0.72);
+  backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.04) inset, 0 24px 60px -20px rgba(0, 0, 0, 0.7);
+}
+
+/* Bright top edge — light catching the top of the material */
+.hairline-top {
+  border-top: 1px solid var(--color-border-strong);
+}
+
+/* Primary action: solid white, the way Cursor treats its main CTA */
+.btn-primary {
+  background: var(--color-foreground);
+  color: #0a0a0a;
+  font-weight: 600;
+  box-shadow: 0 6px 20px -6px rgba(0, 0, 0, 0.6);
+  transition: transform 120ms ease-out, background-color 160ms ease-out, opacity 160ms ease-out;
+}
+.btn-primary:hover:not(:disabled) {
+  background: #ffffff;
+}
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--color-border);
+  color: var(--color-foreground);
+  font-weight: 500;
+  transition: transform 120ms ease-out, background-color 160ms ease-out;
+}
+.btn-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.09);
+}
+.btn-secondary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Shared field styling — Cursor's muted inputs with a blue focus ring */
+.field {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  color: var(--color-foreground);
+  transition: border-color 140ms ease-out, box-shadow 140ms ease-out;
+}
+.field::placeholder {
+  color: var(--color-faint);
+}
+.field:focus {
+  outline: none;
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 3px var(--color-focus-glow);
+}
+
+.text-muted {
+  color: var(--color-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-primary,
+  .btn-secondary {
+    transition: background-color 160ms ease-out;
+  }
+  .btn-primary:active:not(:disabled),
+  .btn-secondary:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass-card {
+    background: #141414;
+    backdrop-filter: none;
+  }
 }
