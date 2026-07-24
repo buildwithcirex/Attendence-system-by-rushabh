@@ -8,6 +8,7 @@ import "./globals.css";
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://logs.kcecell.org"),
   title: "E-Cell Attendance",
   description: "E-Cell Attendance Recording System",
 };
