@@ -57,7 +57,7 @@ export default function AdminOtpPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 rounded-full border-2 border-white/10 border-t-white/70 animate-spin" />
           <p className="text-muted font-light">Loading OTP...</p>
@@ -68,7 +68,7 @@ export default function AdminOtpPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center flex-col gap-4 bg-[#0a0a0a]">
+      <div className="min-h-screen flex items-center justify-center flex-col gap-4 bg-background">
         <ShieldAlert className="w-16 h-16 text-red-500" />
         <h2 className="text-xl font-bold text-white">Access Denied</h2>
         <p className="text-muted">{error}</p>
@@ -83,7 +83,7 @@ export default function AdminOtpPage() {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-8 flex flex-col relative overflow-hidden text-white bg-[#0a0a0a]">
+    <div className="min-h-screen p-4 md:p-8 flex flex-col relative overflow-hidden text-white bg-background">
       <GradientBackground />
 
       <header className="flex justify-between items-center mb-6 glass-card rounded-2xl p-4 px-6">

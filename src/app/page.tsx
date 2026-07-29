@@ -12,7 +12,7 @@ export default async function Home() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-[#0a0a0a]">
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-background">
       <GradientBackground />
 
       <div className="w-full max-w-md glass-card rounded-2xl p-8 relative z-10 text-center">

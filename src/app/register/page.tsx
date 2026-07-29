@@ -92,7 +92,7 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-[#0a0a0a]">
+      <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-background">
         <GradientBackground />
         <div className="w-full max-w-md glass-card rounded-2xl p-8 relative z-10 text-center">
           <div className="w-16 h-16 rounded-2xl bg-emerald-500/15 flex items-center justify-center mx-auto mb-4 border border-emerald-500/40">
@@ -114,7 +114,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col p-4 relative overflow-y-auto overflow-x-hidden bg-[#0a0a0a]">
+    <div className="min-h-screen flex flex-col p-4 relative overflow-y-auto overflow-x-hidden bg-background">
       <GradientBackground />
 
       <div className="w-full max-w-2xl mx-auto pt-8 pb-16 relative z-10">

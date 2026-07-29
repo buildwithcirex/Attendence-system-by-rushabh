@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ShieldAlert, RefreshCw, LogOut, Users, Clock, Pencil, X, Settings, KeyRound } from "lucide-react";
+import { ShieldAlert, RefreshCw, LogOut, Users, Clock, Pencil, X, Settings, KeyRound, BookOpen } from "lucide-react";
 import { format } from "date-fns";
 import { GradientBackground } from "@/components/GradientBackground";
 
@@ -164,7 +164,7 @@ export default function AdminPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 rounded-full border-2 border-white/10 border-t-white/70 animate-spin" />
           <p className="text-muted font-light">Loading admin data...</p>
@@ -175,7 +175,7 @@ export default function AdminPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center flex-col gap-4 bg-[#0a0a0a]">
+      <div className="min-h-screen flex items-center justify-center flex-col gap-4 bg-background">
         <ShieldAlert className="w-16 h-16 text-red-500" />
         <h2 className="text-xl font-bold text-white">Access Denied</h2>
         <p className="text-muted">{error}</p>
@@ -190,7 +190,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-8 flex flex-col relative overflow-hidden text-white bg-[#0a0a0a]">
+    <div className="min-h-screen p-4 md:p-8 flex flex-col relative overflow-hidden text-white bg-background">
       <GradientBackground />
 
       <header className="flex justify-between items-center mb-6 glass-card rounded-2xl p-4 px-6">
@@ -206,6 +206,13 @@ export default function AdminPage() {
           >
             <KeyRound className="w-4 h-4" />
             <span className="hidden sm:inline">OTP</span>
+          </button>
+          <button
+            onClick={() => router.push("/admin/resources")}
+            className="btn-secondary flex items-center gap-2 px-4 py-2 rounded-lg"
+          >
+            <BookOpen className="w-4 h-4" />
+            <span className="hidden sm:inline">Resources</span>
           </button>
           <button
             onClick={() => router.push("/admin/settings")}
@@ -236,7 +243,7 @@ export default function AdminPage() {
         <button
           onClick={() => setActiveTab('users')}
           className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
-            activeTab === 'users' ? 'bg-white text-[#0a0a0a]' : 'bg-white/5 text-muted hover:text-white hover:bg-white/10'
+            activeTab === 'users' ? 'bg-accent text-[color:var(--color-on-accent)]' : 'bg-white/5 text-muted hover:text-white hover:bg-white/10'
           }`}
         >
           <Users className="w-4 h-4" />
@@ -245,7 +252,7 @@ export default function AdminPage() {
         <button
           onClick={() => setActiveTab('sessions')}
           className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
-            activeTab === 'sessions' ? 'bg-white text-[#0a0a0a]' : 'bg-white/5 text-muted hover:text-white hover:bg-white/10'
+            activeTab === 'sessions' ? 'bg-accent text-[color:var(--color-on-accent)]' : 'bg-white/5 text-muted hover:text-white hover:bg-white/10'
           }`}
         >
           <Clock className="w-4 h-4" />

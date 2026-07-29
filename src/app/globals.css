@@ -1,72 +1,33 @@
 @import "tailwindcss";
 
 /*
-  Gilroy — self-hosted. Drop the .woff2 files into /public/fonts (see fonts/README.md).
-  font-display: swap keeps the UI usable and falls back cleanly until the files are present.
+  Gilroy is the primary UI font, self-hosted from public/fonts and loaded via
+  next/font/local in layout.tsx, exposed as --font-gilroy. Only Light (300) and
+  ExtraBold (800) weights ship; intermediate weights are browser-synthesized.
 */
-@font-face {
-  font-family: 'Gilroy';
-  src: url('/fonts/Gilroy-Light.woff2') format('woff2');
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Gilroy';
-  src: url('/fonts/Gilroy-Regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Gilroy';
-  src: url('/fonts/Gilroy-Medium.woff2') format('woff2');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Gilroy';
-  src: url('/fonts/Gilroy-SemiBold.woff2') format('woff2');
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Gilroy';
-  src: url('/fonts/Gilroy-Bold.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Gilroy';
-  src: url('/fonts/Gilroy-ExtraBold.woff2') format('woff2');
-  font-weight: 800;
-  font-style: normal;
-  font-display: swap;
-}
 
 @theme {
-  /* Cursor-inspired near-black, monochrome surfaces */
-  --color-background: #0a0a0a;
-  --color-surface: #141414;
-  --color-surface-2: #1c1c1c;
-  --color-surface-3: #262626;
+  /* "Cosmic × Vanilla" — warm charcoal-purple surfaces, pale-cream accent */
+  --color-background: #1c1a24;
+  --color-surface: #23212c;
+  --color-surface-2: #2b2937;
+  --color-surface-3: #353241;
 
-  --color-foreground: #f2f2f2;
-  --color-muted: #9b9b9b;
-  --color-faint: #6a6a6a;
+  --color-foreground: #eef0df;
+  --color-muted: #a6a49b;
+  --color-faint: #726f7c;
 
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-border-strong: rgba(255, 255, 255, 0.14);
+  --color-border: rgba(241, 254, 200, 0.09);
+  --color-border-strong: rgba(241, 254, 200, 0.16);
 
-  /* Restrained accent — used only for focus, active state and links */
-  --color-accent: #e8e8e8;
-  --color-focus: #3d7dff;
-  --color-focus-glow: rgba(61, 125, 255, 0.35);
+  /* Vanilla accent — used for primary actions, focus, active state and links */
+  --color-accent: #f1fec8;
+  --color-accent-strong: #f7ffdb;
+  --color-on-accent: #23212c;
+  --color-focus: #f1fec8;
+  --color-focus-glow: rgba(241, 254, 200, 0.28);
 
-  --font-sans: 'Gilroy', system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font-gilroy), system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 }
 
@@ -89,12 +50,12 @@ h2 {
   line-height: 1.1;
 }
 
-/* Cursor-style card: a heavy, near-opaque dark material — not a light glass pane */
+/* Heavy, near-opaque cosmic material — not a light glass pane */
 .glass-card {
-  background: rgba(20, 20, 20, 0.72);
+  background: rgba(35, 33, 44, 0.72);
   backdrop-filter: blur(20px) saturate(140%);
   border: 1px solid var(--color-border);
-  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.04) inset, 0 24px 60px -20px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 1px 0 0 rgba(241, 254, 200, 0.05) inset, 0 24px 60px -20px rgba(0, 0, 0, 0.7);
 }
 
 /* Bright top edge — light catching the top of the material */
@@ -102,30 +63,30 @@ h2 {
   border-top: 1px solid var(--color-border-strong);
 }
 
-/* Primary action: solid white, the way Cursor treats its main CTA */
+/* Primary action: solid Vanilla fill with Cosmic text — the palette's main CTA */
 .btn-primary {
-  background: var(--color-foreground);
-  color: #0a0a0a;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
   font-weight: 600;
   box-shadow: 0 6px 20px -6px rgba(0, 0, 0, 0.6);
   transition: transform 120ms ease-out, background-color 160ms ease-out, opacity 160ms ease-out;
 }
 .btn-primary:hover:not(:disabled) {
-  background: #ffffff;
+  background: var(--color-accent-strong);
 }
 .btn-primary:active:not(:disabled) {
   transform: scale(0.98);
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(241, 254, 200, 0.05);
   border: 1px solid var(--color-border);
   color: var(--color-foreground);
   font-weight: 500;
   transition: transform 120ms ease-out, background-color 160ms ease-out;
 }
 .btn-secondary:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.09);
+  background: rgba(241, 254, 200, 0.1);
 }
 .btn-secondary:active:not(:disabled) {
   transform: scale(0.98);
@@ -153,8 +114,8 @@ h2 {
 
 /*
   Animated mesh-gradient background — slow-drifting blurred blobs in the
-  monochrome palette with a single blue accent. Sits behind page content
-  (z-index: -1) and only animates compositor-friendly transforms.
+  Cosmic × Vanilla palette with a restrained vanilla glow. Sits behind page
+  content (z-index: -1) and only animates compositor-friendly transforms.
 */
 .gradient-bg {
   position: absolute;
@@ -175,7 +136,7 @@ h2 {
   height: 55vw;
   left: -8vw;
   top: -12vw;
-  background: radial-gradient(circle at center, rgba(61, 125, 255, 0.28), transparent 72%);
+  background: radial-gradient(circle at center, rgba(241, 254, 200, 0.16), transparent 72%);
   animation: drift-1 16s ease-in-out infinite;
 }
 .gradient-bg .blob-2 {
@@ -183,7 +144,7 @@ h2 {
   height: 48vw;
   right: -8vw;
   top: 0;
-  background: radial-gradient(circle at center, rgba(120, 95, 255, 0.22), transparent 70%);
+  background: radial-gradient(circle at center, rgba(150, 138, 200, 0.2), transparent 70%);
   animation: drift-2 20s ease-in-out infinite;
 }
 .gradient-bg .blob-3 {
@@ -191,7 +152,7 @@ h2 {
   height: 52vw;
   left: 22vw;
   bottom: -24vw;
-  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1), transparent 72%);
+  background: radial-gradient(circle at center, rgba(241, 254, 200, 0.08), transparent 72%);
   animation: drift-3 18s ease-in-out infinite;
 }
 

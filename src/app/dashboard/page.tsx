@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { LogOut, Clock, User, ShieldCheck } from "lucide-react";
+import { LogOut, Clock, User, ShieldCheck, BookOpen } from "lucide-react";
 import { LogoutModal } from "@/components/LogoutModal";
 import { GradientBackground } from "@/components/GradientBackground";
 import { format } from "date-fns";
@@ -121,6 +121,14 @@ export default function DashboardPage() {
             <span className="font-medium">{session.name}</span>
             <span className="text-faint ml-1">({session.pnr_number})</span>
           </div>
+
+          <button
+            onClick={() => router.push("/resources")}
+            className="btn-secondary py-2 px-4 rounded-xl flex items-center gap-2"
+          >
+            <BookOpen className="w-4 h-4" />
+            <span className="hidden sm:inline">Resources</span>
+          </button>
 
           <button
             onClick={() => setIsLogoutModalOpen(true)}
