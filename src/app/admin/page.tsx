@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ShieldAlert, RefreshCw, LogOut, Users, Clock, Pencil, X, Settings, KeyRound } from "lucide-react";
+import { ShieldAlert, RefreshCw, Users, Clock, Pencil, X, Settings, KeyRound } from "lucide-react";
 import { format } from "date-fns";
+import { Navbar } from "@/components/Navbar";
+import type { SessionPayload } from "@/utils/session";
 
 type Option = { id: string; name: string };
 
@@ -32,17 +34,37 @@ type SessionRow = {
   work_description: string | null;
 };
 
+type TaskRow = {
+  id: string;
+  user_id: string;
+  task_description: string;
+  status: 'pending' | 'completed';
+  created_at: string;
+  member?: { id: string; name: string; pnr_number: string };
+};
+
+type CalendarEventRow = {
+  id: string;
+  title: string;
+  event_date: string;
+  created_by: string;
+  created_at: string;
+};
+
 export default function AdminPage() {
   const router = useRouter();
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [users, setUsers] = useState<Member[]>([]);
+  const [tasks, setTasks] = useState<TaskRow[]>([]);
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEventRow[]>([]);
   const [branches, setBranches] = useState<Option[]>([]);
   const [years, setYears] = useState<Option[]>([]);
   const [positions, setPositions] = useState<Option[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [activeTab, setActiveTab] = useState<'sessions' | 'users'>('users');
+  const [activeTab, setActiveTab] = useState<'sessions' | 'users' | 'tasks' | 'calendar'>('users');
   const [editingUser, setEditingUser] = useState<Member | null>(null);
+  const [session, setSession] = useState<SessionPayload | null>(null);
 
   const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>(null);
 
@@ -72,6 +94,25 @@ export default function AdminPage() {
     }
   };
 
+  const fetchTasks = async () => {
+    const res = await fetch("/api/admin/tasks");
+    if (res.status === 403) return;
+    const data = await res.json();
+    if (data.success) {
+      setTasks(data.tasks);
+    }
+  };
+
+  const fetchCalendarEvents = async () => {
+    const res = await fetch("/api/calendar");
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success) {
+        setCalendarEvents(data.events);
+      }
+    }
+  };
+
   const fetchOptions = async () => {
     const res = await fetch("/api/admin/options");
     const data = await res.json();
@@ -82,11 +123,21 @@ export default function AdminPage() {
     }
   };
 
+  const fetchSession = async () => {
+    const res = await fetch("/api/session/status");
+    if (res.ok) {
+      const data = await res.json();
+      if (data.authenticated) {
+        setSession(data.session);
+      }
+    }
+  };
+
   const loadData = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      await Promise.all([fetchSessions(), fetchUsers(), fetchOptions()]);
+      await Promise.all([fetchSessions(), fetchUsers(), fetchOptions(), fetchSession(), fetchTasks(), fetchCalendarEvents()]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load admin data");
     } finally {
@@ -136,6 +187,72 @@ export default function AdminPage() {
     } catch (err) {
       console.error(err);
       alert("Network error while saving changes.");
+    }
+  };
+
+  const assignTask = async (userId: string, description: string) => {
+    try {
+      const res = await fetch("/api/admin/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId, task_description: description }),
+      });
+      if (res.ok) {
+        await fetchTasks();
+      } else {
+        alert("Failed to assign task.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Network error while assigning task.");
+    }
+  };
+
+  const deleteTask = async (taskId: string) => {
+    if (!confirm("Delete this task?")) return;
+    try {
+      const res = await fetch(`/api/admin/tasks?task_id=${taskId}`, { method: "DELETE" });
+      if (res.ok) {
+        await fetchTasks();
+      } else {
+        alert("Failed to delete task.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Network error while deleting task.");
+    }
+  };
+
+  const addCalendarEvent = async (title: string, event_date: string) => {
+    try {
+      const res = await fetch("/api/admin/calendar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, event_date }),
+      });
+      if (res.ok) {
+        await fetchCalendarEvents();
+      } else {
+        alert("Failed to create event.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Network error while creating event.");
+    }
+  };
+
+  const deleteCalendarEvent = async (eventId: string) => {
+    if (!confirm("Delete this calendar event?")) return;
+    try {
+      const res = await fetch(`/api/admin/calendar?event_id=${eventId}`, { method: "DELETE" });
+      if (res.ok) {
+        await fetchCalendarEvents();
+      } else {
+        alert("Failed to delete event.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Network error while deleting event.");
     }
   };
 
@@ -190,15 +307,54 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen p-4 md:p-8 flex flex-col relative overflow-hidden text-white bg-[#0a0a0a]">
-      <div className="absolute top-[-25%] left-1/2 -translate-x-1/2 w-[60%] h-[50%] rounded-full bg-white/[0.03] blur-[160px] -z-10" />
+      <Navbar 
+        session={session} 
+        title="Admin Dashboard" 
+        subtitle="Management Console" 
+      />
 
-      <header className="flex justify-between items-center mb-6 glass-card rounded-2xl p-4 px-6">
-        <div>
-          <h1 className="font-extrabold text-2xl text-white">Admin Dashboard</h1>
-          <p className="text-sm text-muted">Management Console</p>
-        </div>
+      {/* Tabs & Actions */}
+      <div className="flex flex-wrap justify-between items-center gap-4 mb-6 pt-32">
+        <div className="flex gap-2">
+          <button
+            onClick={() => setActiveTab('users')}
+          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
+            activeTab === 'users' ? 'bg-white text-[#0a0a0a]' : 'bg-white/5 text-muted hover:text-white hover:bg-white/10'
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          User Management
+        </button>
+        <button
+          onClick={() => setActiveTab('sessions')}
+          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
+            activeTab === 'sessions' ? 'bg-white text-[#0a0a0a]' : 'bg-white/5 text-muted hover:text-white hover:bg-white/10'
+          }`}
+        >
+          <Clock className="w-4 h-4" />
+          Session Logs
+        </button>
+        <button
+          onClick={() => setActiveTab('tasks')}
+          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
+            activeTab === 'tasks' ? 'bg-white text-[#0a0a0a]' : 'bg-white/5 text-muted hover:text-white hover:bg-white/10'
+          }`}
+        >
+          <Pencil className="w-4 h-4" />
+          Tasks
+        </button>
+        <button
+          onClick={() => setActiveTab('calendar')}
+          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
+            activeTab === 'calendar' ? 'bg-white text-[#0a0a0a]' : 'bg-white/5 text-muted hover:text-white hover:bg-white/10'
+          }`}
+        >
+          <Clock className="w-4 h-4" />
+          Calendar
+        </button>
+      </div>
 
-        <div className="flex gap-3">
+      <div className="flex gap-3">
           <button
             onClick={() => router.push("/admin/otp")}
             className="btn-secondary flex items-center gap-2 px-4 py-2 rounded-lg"
@@ -220,36 +376,7 @@ export default function AdminPage() {
             <RefreshCw className="w-4 h-4" />
             <span className="hidden sm:inline">Refresh</span>
           </button>
-          <button
-            onClick={() => router.push("/dashboard")}
-            className="btn-primary flex items-center gap-2 px-4 py-2 rounded-lg"
-          >
-            <LogOut className="w-4 h-4" />
-            <span className="hidden sm:inline">Exit Admin</span>
-          </button>
         </div>
-      </header>
-
-      {/* Tabs */}
-      <div className="flex gap-2 mb-6">
-        <button
-          onClick={() => setActiveTab('users')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
-            activeTab === 'users' ? 'bg-white text-[#0a0a0a]' : 'bg-white/5 text-muted hover:text-white hover:bg-white/10'
-          }`}
-        >
-          <Users className="w-4 h-4" />
-          User Management
-        </button>
-        <button
-          onClick={() => setActiveTab('sessions')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
-            activeTab === 'sessions' ? 'bg-white text-[#0a0a0a]' : 'bg-white/5 text-muted hover:text-white hover:bg-white/10'
-          }`}
-        >
-          <Clock className="w-4 h-4" />
-          Session Logs
-        </button>
       </div>
 
       <main className="flex-1 overflow-auto">
@@ -263,7 +390,7 @@ export default function AdminPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm whitespace-nowrap">
               <thead className="bg-surface-2 text-muted">
-                {activeTab === 'users' ? (
+                {activeTab === 'users' && (
                   <tr>
                     <th className="px-6 py-4 font-medium">Name</th>
                     <th className="px-6 py-4 font-medium">Email</th>
@@ -273,13 +400,30 @@ export default function AdminPage() {
                     <th className="px-6 py-4 font-medium">Status</th>
                     <th className="px-6 py-4 font-medium text-right">Actions</th>
                   </tr>
-                ) : (
+                )}
+                {activeTab === 'sessions' && (
                   <tr>
                     <th className="px-6 py-4 font-medium cursor-pointer hover:text-white" onClick={() => handleSort('login_time')}>Date / Time In</th>
                     <th className="px-6 py-4 font-medium cursor-pointer hover:text-white" onClick={() => handleSort('member_name')}>Member</th>
                     <th className="px-6 py-4 font-medium cursor-pointer hover:text-white" onClick={() => handleSort('logout_time')}>Time Out</th>
                     <th className="px-6 py-4 font-medium cursor-pointer hover:text-white" onClick={() => handleSort('duration_minutes')}>Duration</th>
                     <th className="px-6 py-4 font-medium">Work Description</th>
+                  </tr>
+                )}
+                {activeTab === 'tasks' && (
+                  <tr>
+                    <th className="px-6 py-4 font-medium cursor-pointer hover:text-white" onClick={() => handleSort('created_at')}>Date Assigned</th>
+                    <th className="px-6 py-4 font-medium cursor-pointer hover:text-white" onClick={() => handleSort('user_id')}>Assignee</th>
+                    <th className="px-6 py-4 font-medium">Description</th>
+                    <th className="px-6 py-4 font-medium cursor-pointer hover:text-white" onClick={() => handleSort('status')}>Status</th>
+                    <th className="px-6 py-4 font-medium text-right">Actions</th>
+                  </tr>
+                )}
+                {activeTab === 'calendar' && (
+                  <tr>
+                    <th className="px-6 py-4 font-medium cursor-pointer hover:text-white" onClick={() => handleSort('event_date')}>Date</th>
+                    <th className="px-6 py-4 font-medium cursor-pointer hover:text-white" onClick={() => handleSort('title')}>Title</th>
+                    <th className="px-6 py-4 font-medium text-right">Actions</th>
                   </tr>
                 )}
               </thead>
@@ -370,6 +514,50 @@ export default function AdminPage() {
                     </tr>
                   ))
                 )}
+                
+                {activeTab === 'tasks' && sortedData(tasks).map((t) => (
+                  <tr key={t.id} className="hover:bg-white/5 transition-colors">
+                    <td className="px-6 py-4 text-white font-medium">{format(new Date(t.created_at), "MMM d, yyyy")}</td>
+                    <td className="px-6 py-4 text-foreground">{t.member?.name || 'Unknown'}</td>
+                    <td className="px-6 py-4 text-muted">{t.task_description}</td>
+                    <td className="px-6 py-4">
+                      {t.status === 'completed' ? (
+                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          Completed
+                        </span>
+                      ) : (
+                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                          Pending
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button
+                        onClick={() => deleteTask(t.id)}
+                        className="btn-secondary flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium ml-auto"
+                      >
+                        <X className="w-3 h-3 text-red-400" />
+                        <span className="text-red-400">Delete</span>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+
+                {activeTab === 'calendar' && sortedData(calendarEvents).map((ev) => (
+                  <tr key={ev.id} className="hover:bg-white/5 transition-colors">
+                    <td className="px-6 py-4 text-white font-medium">{format(new Date(ev.event_date), "MMM d, yyyy")}</td>
+                    <td className="px-6 py-4 text-foreground">{ev.title}</td>
+                    <td className="px-6 py-4 text-right">
+                      <button
+                        onClick={() => deleteCalendarEvent(ev.id)}
+                        className="btn-secondary flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium ml-auto"
+                      >
+                        <X className="w-3 h-3 text-red-400" />
+                        <span className="text-red-400">Delete</span>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
 
                 {activeTab === 'users' && users.length === 0 && (
                   <tr>
@@ -386,11 +574,36 @@ export default function AdminPage() {
                     </td>
                   </tr>
                 )}
+
+                {activeTab === 'tasks' && tasks.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-12 text-center text-faint bg-black/20">
+                      No tasks assigned yet.
+                    </td>
+                  </tr>
+                )}
+                {activeTab === 'calendar' && calendarEvents.length === 0 && (
+                  <tr>
+                    <td colSpan={3} className="px-6 py-12 text-center text-faint bg-black/20">
+                      No E-Cell events scheduled.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
         </motion.div>
       </main>
+
+      {/* Task Assignment Form Modal */}
+      {activeTab === 'tasks' && (
+        <AssignTaskForm users={users} onAssign={assignTask} />
+      )}
+
+      {/* Calendar Add Form */}
+      {activeTab === 'calendar' && (
+        <AddCalendarForm onAdd={addCalendarEvent} />
+      )}
 
       {editingUser && (
         <EditUserModal
@@ -402,6 +615,111 @@ export default function AdminPage() {
           onSave={saveUserEdits}
         />
       )}
+    </div>
+  );
+}
+
+function AssignTaskForm({ users, onAssign }: { users: Member[], onAssign: (userId: string, description: string) => Promise<void> }) {
+  const [userId, setUserId] = useState('');
+  const [description, setDescription] = useState('');
+  const [assigning, setAssigning] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userId || !description) return;
+    setAssigning(true);
+    await onAssign(userId, description);
+    setDescription('');
+    setAssigning(false);
+  };
+
+  return (
+    <div className="glass-card rounded-xl p-6 mt-6 max-w-2xl">
+      <h3 className="text-lg font-bold mb-4">Assign New Task</h3>
+      <form onSubmit={handleSubmit} className="flex gap-4 items-end flex-wrap md:flex-nowrap">
+        <div className="space-y-2 flex-1 min-w-[200px]">
+          <label className="text-sm font-medium text-muted">Assignee</label>
+          <select
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
+            required
+            className="field w-full rounded-xl px-4 py-2.5"
+          >
+            <option value="">Select Member...</option>
+            {users.map(u => (
+              <option key={u.id} value={u.id}>{u.name} ({u.pnr_number})</option>
+            ))}
+          </select>
+        </div>
+        <div className="space-y-2 flex-[2] min-w-[300px]">
+          <label className="text-sm font-medium text-muted">Task Description</label>
+          <input
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            required
+            placeholder="E.g., Complete UI mockups"
+            className="field w-full rounded-xl px-4 py-2.5"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={assigning || !userId || !description}
+          className="btn-primary py-2.5 px-6 rounded-xl disabled:opacity-60 whitespace-nowrap h-[44px]"
+        >
+          {assigning ? "Assigning..." : "Assign Task"}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+function AddCalendarForm({ onAdd }: { onAdd: (title: string, event_date: string) => Promise<void> }) {
+  const [title, setTitle] = useState('');
+  const [eventDate, setEventDate] = useState('');
+  const [adding, setAdding] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title || !eventDate) return;
+    setAdding(true);
+    await onAdd(title, eventDate);
+    setTitle('');
+    setEventDate('');
+    setAdding(false);
+  };
+
+  return (
+    <div className="glass-card rounded-xl p-6 mt-6 max-w-2xl">
+      <h3 className="text-lg font-bold mb-4">Add E-Cell Event</h3>
+      <form onSubmit={handleSubmit} className="flex gap-4 items-end flex-wrap md:flex-nowrap">
+        <div className="space-y-2 flex-1 min-w-[200px]">
+          <label className="text-sm font-medium text-muted">Event Title</label>
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+            placeholder="E.g., Ideathon 2026"
+            className="field w-full rounded-xl px-4 py-2.5"
+          />
+        </div>
+        <div className="space-y-2 flex-1 min-w-[150px]">
+          <label className="text-sm font-medium text-muted">Event Date</label>
+          <input
+            type="date"
+            value={eventDate}
+            onChange={(e) => setEventDate(e.target.value)}
+            required
+            className="field w-full rounded-xl px-4 py-2.5"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={adding || !title || !eventDate}
+          className="btn-primary py-2.5 px-6 rounded-xl disabled:opacity-60 whitespace-nowrap h-[44px]"
+        >
+          {adding ? "Adding..." : "Add Event"}
+        </button>
+      </form>
     </div>
   );
 }

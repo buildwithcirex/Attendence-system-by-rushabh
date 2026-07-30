@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { LogOut, Clock, User, ShieldCheck } from "lucide-react";
 import { LogoutModal } from "@/components/LogoutModal";
+import { Navbar } from "@/components/Navbar";
+import { TaskBar } from "@/components/TaskBar";
+import { CombinedCalendar } from "@/components/CombinedCalendar";
 import { format } from "date-fns";
 import type { SessionPayload } from "@/utils/session";
 
@@ -103,37 +105,15 @@ export default function DashboardPage() {
       {/* Faint monochrome light source */}
       <div className="absolute top-[-25%] left-1/2 -translate-x-1/2 w-[60%] h-[50%] rounded-full bg-white/[0.03] blur-[160px] -z-10" />
 
-      {/* Header */}
-      <header className="flex justify-between items-center mb-12 glass-card rounded-2xl p-4 px-6">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-surface-2 border border-[color:var(--color-border-strong)] flex items-center justify-center">
-            <ShieldCheck className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h1 className="font-bold text-lg">E-Cell Portal</h1>
-            <p className="text-xs text-muted">Active Session</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <div className="hidden md:flex items-center gap-2 text-sm text-foreground bg-surface-2 py-2 px-4 rounded-full border border-[color:var(--color-border)]">
-            <User className="w-4 h-4 text-muted" />
-            <span className="font-medium">{session.name}</span>
-            <span className="text-faint ml-1">({session.pnr_number})</span>
-          </div>
-
-          <button
-            onClick={() => setIsLogoutModalOpen(true)}
-            className="btn-secondary py-2 px-4 rounded-xl flex items-center gap-2"
-          >
-            <LogOut className="w-4 h-4" />
-            <span className="hidden sm:inline">Checkout</span>
-          </button>
-        </div>
-      </header>
+      <Navbar 
+        session={session} 
+        onLogoutClick={() => setIsLogoutModalOpen(true)} 
+        title="E-Cell Portal" 
+        subtitle="Active Session" 
+      />
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col items-center justify-center max-w-4xl mx-auto w-full">
+      <main className="flex-1 flex flex-col items-center justify-center max-w-4xl mx-auto w-full pt-32">
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -172,6 +152,9 @@ export default function DashboardPage() {
               <span className={isWarning ? "text-red-400" : ""}>Max: 4h limit</span>
             </div>
           </div>
+          
+          <TaskBar />
+          <CombinedCalendar />
         </motion.div>
       </main>
 

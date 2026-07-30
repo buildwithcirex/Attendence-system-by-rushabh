@@ -12,6 +12,7 @@
     "@heroui/react": "^3.2.2",
     "@supabase/supabase-js": "^2.110.8",
     "date-fns": "^4.4.0",
+    "date-holidays": "^3.34.0",
     "framer-motion": "^12.42.2",
     "jose": "^6.2.4",
     "lucide-react": "^1.25.0",
