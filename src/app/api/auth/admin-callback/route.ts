@@ -36,11 +36,13 @@ export async function GET(req: NextRequest) {
     }
 
     // Email ownership proven — now enforce that it is an approved admin member.
+    // Supabase lowercases the auth email, so match case-insensitively against
+    // whatever casing the members row was stored with.
     const supabase = getSupabaseAdmin();
     const { data: member, error: memberError } = await supabase
       .from('members')
       .select('id, pnr_number, name, email, role, status')
-      .eq('email', email)
+      .ilike('email', email)
       .maybeSingle();
 
     if (

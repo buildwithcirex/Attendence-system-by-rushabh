@@ -12,11 +12,11 @@ export async function POST(req: NextRequest) {
 
     const supabase = getSupabaseAdmin();
 
-    // 1. check member exists
+    // 1. check member exists (case-insensitive: stored casing may differ from typed)
     const { data: member, error: memberError } = await supabase
       .from('members')
       .select('*')
-      .eq('email', email)
+      .ilike('email', email)
       .single();
 
     if (memberError || !member) {

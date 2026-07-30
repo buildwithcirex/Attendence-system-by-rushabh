@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { LogIn, Fingerprint, Loader2, Mail } from "lucide-react";
 import { OTPInput } from "@/components/OTPInput";
+import { GradientBackground } from "@/components/GradientBackground";
 
 const ADMIN_ERRORS: Record<string, string> = {
   invalid_link: "That admin login link is invalid or has expired. Request a new one below.",
@@ -89,8 +90,7 @@ function LoginForm() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Faint monochrome light source */}
-      <div className="absolute top-[-15%] left-1/2 -translate-x-1/2 w-[60%] h-[45%] rounded-full bg-white/[0.04] blur-[140px]" />
+      <GradientBackground />
 
       <motion.div
         initial={{ opacity: 0, y: 16 }}
