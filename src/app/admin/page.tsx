@@ -651,7 +651,7 @@ function AssignTaskForm({ users, onAssign }: { users: Member[], onAssign: (userI
   return (
     <div className="glass-card rounded-xl p-6 max-w-2xl">
       <h3 className="text-lg font-bold mb-4">Assign New Task</h3>
-      <form onSubmit={handleSubmit} className="flex gap-4 items-end flex-wrap md:flex-nowrap">
+      <form onSubmit={handleSubmit} className="flex gap-4 items-end flex-wrap">
         <div className="space-y-2 flex-1 min-w-[200px]">
           <label className="text-sm font-medium text-muted">Assignee</label>
           <select
@@ -706,7 +706,7 @@ function AddCalendarForm({ onAdd }: { onAdd: (title: string, event_date: string)
   return (
     <div className="glass-card rounded-xl p-6 max-w-2xl">
       <h3 className="text-lg font-bold mb-4">Add E-Cell Event</h3>
-      <form onSubmit={handleSubmit} className="flex gap-4 items-end flex-wrap md:flex-nowrap">
+      <form onSubmit={handleSubmit} className="flex gap-4 items-end flex-wrap">
         <div className="space-y-2 flex-1 min-w-[200px]">
           <label className="text-sm font-medium text-muted">Event Title</label>
           <input
