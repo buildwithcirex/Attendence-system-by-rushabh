@@ -413,9 +413,9 @@ export default function AdminPage() {
           className="w-full glass-card rounded-xl overflow-hidden"
         >
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm whitespace-nowrap">
-              <thead className="bg-surface-2 text-muted">
-                {activeTab === 'users' && (
+            {activeTab === 'users' && (
+              <table className="w-full text-left text-sm whitespace-nowrap">
+                <thead className="bg-surface-2 text-muted">
                   <tr>
                     <th className="px-6 py-4 font-medium">Name</th>
                     <th className="px-6 py-4 font-medium">Email</th>
@@ -425,8 +425,65 @@ export default function AdminPage() {
                     <th className="px-6 py-4 font-medium">Status</th>
                     <th className="px-6 py-4 font-medium text-right">Actions</th>
                   </tr>
-                )}
-                {activeTab === 'sessions' && (
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {users.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="px-6 py-12 text-center text-faint bg-black/20">
+                        No users found.
+                      </td>
+                    </tr>
+                  ) : (
+                    sortedData(users).map((u) => (
+                      <tr key={u.id} className="hover:bg-white/5 transition-colors">
+                        <td className="px-6 py-4 font-medium text-white">{u.name}</td>
+                        <td className="px-6 py-4 text-foreground">{u.email}</td>
+                        <td className="px-6 py-4 text-foreground">{u.pnr_number}</td>
+                        <td className="px-6 py-4 text-muted">
+                          {u.branch?.name || "-"} <br />
+                          <span className="text-white text-xs font-semibold">{u.year?.name || "-"}</span>
+                        </td>
+                        <td className="px-6 py-4 text-foreground">{u.position?.name || "-"}</td>
+                        <td className="px-6 py-4">
+                          {u.status === 'approved' ? (
+                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                              Approved
+                            </span>
+                          ) : (
+                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                              Pending
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex justify-end gap-2">
+                            {u.status === 'pending' && (
+                              <button
+                                onClick={() => approveUser(u.id)}
+                                className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                              >
+                                Approve
+                              </button>
+                            )}
+                            <button
+                              onClick={() => setEditingUser(u)}
+                              className="btn-secondary flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium"
+                            >
+                              <Pencil className="w-3 h-3" />
+                              Edit
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            )}
+
+            {activeTab === 'sessions' && (
+              <table className="w-full text-left text-sm whitespace-nowrap">
+                <thead className="bg-surface-2 text-muted">
                   <tr>
                     <th className="px-6 py-4 font-medium cursor-pointer hover:text-white" onClick={() => handleSort('login_time')}>Date / Time In</th>
                     <th className="px-6 py-4 font-medium cursor-pointer hover:text-white" onClick={() => handleSort('member_name')}>Member</th>
@@ -434,8 +491,64 @@ export default function AdminPage() {
                     <th className="px-6 py-4 font-medium cursor-pointer hover:text-white" onClick={() => handleSort('duration_minutes')}>Duration</th>
                     <th className="px-6 py-4 font-medium">Work Description</th>
                   </tr>
-                )}
-                {activeTab === 'tasks' && (
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {sessions.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-12 text-center text-faint bg-black/20">
+                        No sessions found.
+                      </td>
+                    </tr>
+                  ) : (
+                    sortedData(sessions).map((s) => (
+                      <tr key={s.id} className="hover:bg-white/5 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="font-medium">{format(new Date(s.login_time), "MMM d, yyyy")}</div>
+                          <div className="text-muted text-xs mt-1">{format(new Date(s.login_time), "hh:mm a")}</div>
+                        </td>
+                        <td className="px-6 py-4 font-medium">{s.member_name}</td>
+                        <td className="px-6 py-4">
+                          {s.logout_time ? (
+                            <div className="flex items-center gap-2">
+                              <span className="text-white">{format(new Date(s.logout_time), "hh:mm a")}</span>
+                              {s.logout_type === 'auto' && (
+                                <span className="px-2 py-0.5 rounded text-[10px] bg-yellow-500/20 text-yellow-500 font-medium">
+                                  AUTO
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-emerald-400 flex items-center gap-2 text-xs font-medium">
+                              <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                              </span>
+                              Active
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          {s.duration_minutes ? (
+                            <span className="bg-white/5 border border-[color:var(--color-border)] px-2 py-1 rounded text-foreground tabular-nums">
+                              {s.duration_minutes} min
+                            </span>
+                          ) : (
+                            <span className="text-faint">-</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 max-w-[250px] truncate text-muted" title={s.work_description || undefined}>
+                          {s.work_description || <span className="text-faint">-</span>}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            )}
+            
+            {activeTab === 'tasks' && (
+              <table className="w-full text-left text-sm whitespace-nowrap">
+                <thead className="bg-surface-2 text-muted">
                   <tr>
                     <th className="px-6 py-4 font-medium cursor-pointer hover:text-white" onClick={() => handleSort('created_at')}>Date Assigned</th>
                     <th className="px-6 py-4 font-medium cursor-pointer hover:text-white" onClick={() => handleSort('user_id')}>Assignee</th>
@@ -443,179 +556,83 @@ export default function AdminPage() {
                     <th className="px-6 py-4 font-medium cursor-pointer hover:text-white" onClick={() => handleSort('status')}>Status</th>
                     <th className="px-6 py-4 font-medium text-right">Actions</th>
                   </tr>
-                )}
-                {activeTab === 'calendar' && (
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {tasks.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-12 text-center text-faint bg-black/20">
+                        No tasks found.
+                      </td>
+                    </tr>
+                  ) : (
+                    sortedData(tasks).map((t) => (
+                      <tr key={t.id} className="hover:bg-white/5 transition-colors">
+                        <td className="px-6 py-4 text-white font-medium">{format(new Date(t.created_at), "MMM d, yyyy")}</td>
+                        <td className="px-6 py-4 text-foreground">{t.member?.name || 'Unknown'}</td>
+                        <td className="px-6 py-4 text-muted">{t.task_description}</td>
+                        <td className="px-6 py-4">
+                          {t.status === 'completed' ? (
+                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                              Completed
+                            </span>
+                          ) : (
+                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                              Pending
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <button
+                            onClick={() => deleteTask(t.id)}
+                            className="btn-secondary flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium ml-auto"
+                          >
+                            <X className="w-3 h-3 text-red-400" />
+                            <span className="text-red-400">Delete</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            )}
+
+            {activeTab === 'calendar' && (
+              <table className="w-full text-left text-sm whitespace-nowrap">
+                <thead className="bg-surface-2 text-muted">
                   <tr>
                     <th className="px-6 py-4 font-medium cursor-pointer hover:text-white" onClick={() => handleSort('event_date')}>Date</th>
                     <th className="px-6 py-4 font-medium cursor-pointer hover:text-white" onClick={() => handleSort('title')}>Title</th>
                     <th className="px-6 py-4 font-medium text-right">Actions</th>
                   </tr>
-                )}
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {activeTab === 'users' ? (
-                  sortedData(users).map((u) => (
-                    <tr key={u.id} className="hover:bg-white/5 transition-colors">
-                      <td className="px-6 py-4 font-medium text-white">{u.name}</td>
-                      <td className="px-6 py-4 text-foreground">{u.email}</td>
-                      <td className="px-6 py-4 text-foreground">{u.pnr_number}</td>
-                      <td className="px-6 py-4 text-muted">
-                        {u.branch?.name || "-"} <br />
-                        <span className="text-white text-xs font-semibold">{u.year?.name || "-"}</span>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {calendarEvents.length === 0 ? (
+                    <tr>
+                      <td colSpan={3} className="px-6 py-12 text-center text-faint bg-black/20">
+                        No E-Cell events scheduled.
                       </td>
-                      <td className="px-6 py-4 text-foreground">{u.position?.name || "-"}</td>
-                      <td className="px-6 py-4">
-                        {u.status === 'approved' ? (
-                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                            Approved
-                          </span>
-                        ) : (
-                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
-                            Pending
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex justify-end gap-2">
-                          {u.status === 'pending' && (
-                            <button
-                              onClick={() => approveUser(u.id)}
-                              className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-1.5 rounded-lg text-xs font-medium transition-colors"
-                            >
-                              Approve
-                            </button>
-                          )}
+                    </tr>
+                  ) : (
+                    sortedData(calendarEvents).map((ev) => (
+                      <tr key={ev.id} className="hover:bg-white/5 transition-colors">
+                        <td className="px-6 py-4 text-white font-medium">{format(new Date(ev.event_date), "MMM d, yyyy")}</td>
+                        <td className="px-6 py-4 text-foreground">{ev.title}</td>
+                        <td className="px-6 py-4 text-right">
                           <button
-                            onClick={() => setEditingUser(u)}
-                            className="btn-secondary flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium"
+                            onClick={() => deleteCalendarEvent(ev.id)}
+                            className="btn-secondary flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium ml-auto"
                           >
-                            <Pencil className="w-3 h-3" />
-                            Edit
+                            <X className="w-3 h-3 text-red-400" />
+                            <span className="text-red-400">Delete</span>
                           </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  sortedData(sessions).map((s) => (
-                    <tr key={s.id} className="hover:bg-white/5 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="font-medium">{format(new Date(s.login_time), "MMM d, yyyy")}</div>
-                        <div className="text-muted text-xs mt-1">{format(new Date(s.login_time), "hh:mm a")}</div>
-                      </td>
-                      <td className="px-6 py-4 font-medium">{s.member_name}</td>
-                      <td className="px-6 py-4">
-                        {s.logout_time ? (
-                          <div className="flex items-center gap-2">
-                            <span className="text-white">{format(new Date(s.logout_time), "hh:mm a")}</span>
-                            {s.logout_type === 'auto' && (
-                              <span className="px-2 py-0.5 rounded text-[10px] bg-yellow-500/20 text-yellow-500 font-medium">
-                                AUTO
-                              </span>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-emerald-400 flex items-center gap-2 text-xs font-medium">
-                            <span className="relative flex h-2 w-2">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                            </span>
-                            Active
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        {s.duration_minutes ? (
-                          <span className="bg-white/5 border border-[color:var(--color-border)] px-2 py-1 rounded text-foreground tabular-nums">
-                            {s.duration_minutes} min
-                          </span>
-                        ) : (
-                          <span className="text-faint">-</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 max-w-[250px] truncate text-muted" title={s.work_description || undefined}>
-                        {s.work_description || <span className="text-faint">-</span>}
-                      </td>
-                    </tr>
-                  ))
-                )}
-                
-                {activeTab === 'tasks' && sortedData(tasks).map((t) => (
-                  <tr key={t.id} className="hover:bg-white/5 transition-colors">
-                    <td className="px-6 py-4 text-white font-medium">{format(new Date(t.created_at), "MMM d, yyyy")}</td>
-                    <td className="px-6 py-4 text-foreground">{t.member?.name || 'Unknown'}</td>
-                    <td className="px-6 py-4 text-muted">{t.task_description}</td>
-                    <td className="px-6 py-4">
-                      {t.status === 'completed' ? (
-                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                          Completed
-                        </span>
-                      ) : (
-                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
-                          Pending
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => deleteTask(t.id)}
-                        className="btn-secondary flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium ml-auto"
-                      >
-                        <X className="w-3 h-3 text-red-400" />
-                        <span className="text-red-400">Delete</span>
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-
-                {activeTab === 'calendar' && sortedData(calendarEvents).map((ev) => (
-                  <tr key={ev.id} className="hover:bg-white/5 transition-colors">
-                    <td className="px-6 py-4 text-white font-medium">{format(new Date(ev.event_date), "MMM d, yyyy")}</td>
-                    <td className="px-6 py-4 text-foreground">{ev.title}</td>
-                    <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => deleteCalendarEvent(ev.id)}
-                        className="btn-secondary flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium ml-auto"
-                      >
-                        <X className="w-3 h-3 text-red-400" />
-                        <span className="text-red-400">Delete</span>
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-
-                {activeTab === 'users' && users.length === 0 && (
-                  <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-faint bg-black/20">
-                      No users found.
-                    </td>
-                  </tr>
-                )}
-
-                {activeTab === 'sessions' && sessions.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-faint bg-black/20">
-                      No sessions found.
-                    </td>
-                  </tr>
-                )}
-
-                {activeTab === 'tasks' && tasks.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-faint bg-black/20">
-                      No tasks assigned yet.
-                    </td>
-                  </tr>
-                )}
-                {activeTab === 'calendar' && calendarEvents.length === 0 && (
-                  <tr>
-                    <td colSpan={3} className="px-6 py-12 text-center text-faint bg-black/20">
-                      No E-Cell events scheduled.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
         </motion.div>
       </main>
