@@ -106,11 +106,11 @@ export default function DashboardPage() {
     <div className="min-h-screen p-4 md:p-8 flex flex-col relative overflow-hidden">
       <GradientBackground />
 
-      <Navbar 
-        session={session} 
-        onLogoutClick={() => setIsLogoutModalOpen(true)} 
-        title="E-Cell Portal" 
-        subtitle="Active Session" 
+      <Navbar
+        session={session}
+        onLogoutClick={() => setIsLogoutModalOpen(true)}
+        title="E-Cell Portal"
+        subtitle="Active Session"
       />
 
       {/* Main Content */}
@@ -153,13 +153,13 @@ export default function DashboardPage() {
               <span className={isWarning ? "text-red-400" : ""}>Max: 4h limit</span>
             </div>
           </div>
-          
+
           <TaskBar />
           <CombinedCalendar />
         </motion.div>
       </main>
 
-      <LogoutModal 
+      <LogoutModal
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}
         onSuccess={() => router.push("/login")}
