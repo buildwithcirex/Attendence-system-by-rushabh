@@ -33,7 +33,7 @@ export default function DashboardPage() {
           const data = await res.json();
           if (data.authenticated) {
             setSession(data.session);
-            startTimer(data.session.login_time);
+            startTimer(data.session.login_time, data.serverNow);
           } else {
             router.push("/login");
           }
@@ -47,13 +47,17 @@ export default function DashboardPage() {
       }
     };
 
-    const startTimer = (loginTimeIso: string) => {
+    const startTimer = (loginTimeIso: string, serverNow?: number) => {
       const loginTime = new Date(loginTimeIso).getTime();
       const MAX_MS = 4 * 60 * 60 * 1000; // 4 hours
 
+      // Calculate how far off the client's clock is from the server
+      const clientClockSkew = serverNow ? serverNow - Date.now() : 0;
+
       intervalId = setInterval(() => {
-        const now = Date.now();
-        const elapsed = now - loginTime;
+        const now = Date.now() + clientClockSkew;
+        let elapsed = now - loginTime;
+        if (elapsed < 0) elapsed = 0; // Prevent negative time if clocks fluctuate
 
         if (elapsed >= MAX_MS) {
           clearInterval(intervalId);

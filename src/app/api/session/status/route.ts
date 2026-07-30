@@ -32,7 +32,7 @@ export async function GET() {
       return NextResponse.json({ authenticated: false, reason: 'auto_logout' }, { status: 401 });
     }
 
-    return NextResponse.json({ authenticated: true, session });
+    return NextResponse.json({ authenticated: true, session, serverNow: Date.now() });
   } catch (err) {
     console.error('Session status error:', err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
