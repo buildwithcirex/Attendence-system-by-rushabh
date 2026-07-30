@@ -12,13 +12,14 @@ export type SessionPayload = {
   email?: string;
   role: 'member' | 'admin';
   login_time: string;
+  target_minutes?: number;
 };
 
 export async function encrypt(payload: SessionPayload) {
   return new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
-    .setExpirationTime('4h')
+    .setExpirationTime('16h')
     .sign(key);
 }
 
@@ -34,7 +35,7 @@ export async function decrypt(session: string | undefined = '') {
 }
 
 export async function createSession(payload: SessionPayload) {
-  const expires = new Date(Date.now() + 4 * 60 * 60 * 1000);
+  const expires = new Date(Date.now() + 16 * 60 * 60 * 1000);
   const session = await encrypt(payload);
   const cookieStore = await cookies();
 

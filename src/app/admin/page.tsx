@@ -37,11 +37,10 @@ type SessionRow = {
 
 type TaskRow = {
   id: string;
-  user_id: string;
-  task_description: string;
-  status: 'pending' | 'completed';
+  title: string;
+  status: 'todo' | 'in_progress' | 'done';
   created_at: string;
-  member?: { id: string; name: string; pnr_number: string };
+  assignee?: { id: string; name: string; pnr_number: string } | null;
 };
 
 type CalendarEventRow = {
@@ -196,7 +195,7 @@ export default function AdminPage() {
       const res = await fetch("/api/admin/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: userId, task_description: description }),
+        body: JSON.stringify({ assignee_id: userId, title: description }),
       });
       if (res.ok) {
         await fetchTasks();
@@ -283,7 +282,7 @@ export default function AdminPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 rounded-full border-2 border-white/10 border-t-white/70 animate-spin" />
+          <div className="w-10 h-10 rounded-full border-2 border-white/10 border-t-accent animate-spin" />
           <p className="text-muted font-light">Loading admin data...</p>
         </div>
       </div>
@@ -321,8 +320,8 @@ export default function AdminPage() {
           <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setActiveTab('users')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
-            activeTab === 'users' ? 'bg-white text-[#0a0a0a]' : 'bg-white/5 text-muted hover:text-white hover:bg-white/10'
+          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-colors ${
+            activeTab === 'users' ? 'bg-accent text-[color:var(--color-on-accent)]' : 'bg-white/5 text-muted hover:text-foreground hover:bg-white/10'
           }`}
         >
           <Users className="w-4 h-4" />
@@ -330,8 +329,8 @@ export default function AdminPage() {
         </button>
         <button
           onClick={() => setActiveTab('sessions')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
-            activeTab === 'sessions' ? 'bg-white text-[#0a0a0a]' : 'bg-white/5 text-muted hover:text-white hover:bg-white/10'
+          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-colors ${
+            activeTab === 'sessions' ? 'bg-accent text-[color:var(--color-on-accent)]' : 'bg-white/5 text-muted hover:text-foreground hover:bg-white/10'
           }`}
         >
           <Clock className="w-4 h-4" />
@@ -339,8 +338,8 @@ export default function AdminPage() {
         </button>
         <button
           onClick={() => setActiveTab('tasks')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
-            activeTab === 'tasks' ? 'bg-white text-[#0a0a0a]' : 'bg-white/5 text-muted hover:text-white hover:bg-white/10'
+          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-colors ${
+            activeTab === 'tasks' ? 'bg-accent text-[color:var(--color-on-accent)]' : 'bg-white/5 text-muted hover:text-foreground hover:bg-white/10'
           }`}
         >
           <Pencil className="w-4 h-4" />
@@ -348,8 +347,8 @@ export default function AdminPage() {
         </button>
         <button
           onClick={() => setActiveTab('calendar')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
-            activeTab === 'calendar' ? 'bg-white text-[#0a0a0a]' : 'bg-white/5 text-muted hover:text-white hover:bg-white/10'
+          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-colors ${
+            activeTab === 'calendar' ? 'bg-accent text-[color:var(--color-on-accent)]' : 'bg-white/5 text-muted hover:text-foreground hover:bg-white/10'
           }`}
         >
           <Clock className="w-4 h-4" />
@@ -485,10 +484,10 @@ export default function AdminPage() {
               <table className="w-full text-left text-sm whitespace-nowrap">
                 <thead className="bg-surface-2 text-muted">
                   <tr>
-                    <th className="px-6 py-4 font-medium cursor-pointer hover:text-white" onClick={() => handleSort('login_time')}>Date / Time In</th>
-                    <th className="px-6 py-4 font-medium cursor-pointer hover:text-white" onClick={() => handleSort('member_name')}>Member</th>
-                    <th className="px-6 py-4 font-medium cursor-pointer hover:text-white" onClick={() => handleSort('logout_time')}>Time Out</th>
-                    <th className="px-6 py-4 font-medium cursor-pointer hover:text-white" onClick={() => handleSort('duration_minutes')}>Duration</th>
+                    <th className="px-6 py-4 font-medium cursor-pointer hover:text-foreground" onClick={() => handleSort('login_time')}>Date / Time In</th>
+                    <th className="px-6 py-4 font-medium cursor-pointer hover:text-foreground" onClick={() => handleSort('member_name')}>Member</th>
+                    <th className="px-6 py-4 font-medium cursor-pointer hover:text-foreground" onClick={() => handleSort('logout_time')}>Time Out</th>
+                    <th className="px-6 py-4 font-medium cursor-pointer hover:text-foreground" onClick={() => handleSort('duration_minutes')}>Duration</th>
                     <th className="px-6 py-4 font-medium">Work Description</th>
                   </tr>
                 </thead>
@@ -514,6 +513,11 @@ export default function AdminPage() {
                               {s.logout_type === 'auto' && (
                                 <span className="px-2 py-0.5 rounded text-[10px] bg-yellow-500/20 text-yellow-500 font-medium">
                                   AUTO
+                                </span>
+                              )}
+                              {s.logout_type === 'abandoned' && (
+                                <span className="px-2 py-0.5 rounded text-[10px] bg-orange-500/20 text-orange-400 font-medium">
+                                  ABANDONED
                                 </span>
                               )}
                             </div>
@@ -550,10 +554,10 @@ export default function AdminPage() {
               <table className="w-full text-left text-sm whitespace-nowrap">
                 <thead className="bg-surface-2 text-muted">
                   <tr>
-                    <th className="px-6 py-4 font-medium cursor-pointer hover:text-white" onClick={() => handleSort('created_at')}>Date Assigned</th>
-                    <th className="px-6 py-4 font-medium cursor-pointer hover:text-white" onClick={() => handleSort('user_id')}>Assignee</th>
+                    <th className="px-6 py-4 font-medium cursor-pointer hover:text-foreground" onClick={() => handleSort('created_at')}>Date Assigned</th>
+                    <th className="px-6 py-4 font-medium">Assignee</th>
                     <th className="px-6 py-4 font-medium">Description</th>
-                    <th className="px-6 py-4 font-medium cursor-pointer hover:text-white" onClick={() => handleSort('status')}>Status</th>
+                    <th className="px-6 py-4 font-medium cursor-pointer hover:text-foreground" onClick={() => handleSort('status')}>Status</th>
                     <th className="px-6 py-4 font-medium text-right">Actions</th>
                   </tr>
                 </thead>
@@ -568,16 +572,20 @@ export default function AdminPage() {
                     sortedData(tasks).map((t) => (
                       <tr key={t.id} className="hover:bg-white/5 transition-colors">
                         <td className="px-6 py-4 text-white font-medium">{format(new Date(t.created_at), "MMM d, yyyy")}</td>
-                        <td className="px-6 py-4 text-foreground">{t.member?.name || 'Unknown'}</td>
-                        <td className="px-6 py-4 text-muted">{t.task_description}</td>
+                        <td className="px-6 py-4 text-foreground">{t.assignee?.name || 'Unknown'}</td>
+                        <td className="px-6 py-4 text-muted">{t.title}</td>
                         <td className="px-6 py-4">
-                          {t.status === 'completed' ? (
+                          {t.status === 'done' ? (
                             <span className="px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                               Completed
                             </span>
+                          ) : t.status === 'in_progress' ? (
+                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                              In Progress
+                            </span>
                           ) : (
                             <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
-                              Pending
+                              To Do
                             </span>
                           )}
                         </td>
@@ -601,8 +609,8 @@ export default function AdminPage() {
               <table className="w-full text-left text-sm whitespace-nowrap">
                 <thead className="bg-surface-2 text-muted">
                   <tr>
-                    <th className="px-6 py-4 font-medium cursor-pointer hover:text-white" onClick={() => handleSort('event_date')}>Date</th>
-                    <th className="px-6 py-4 font-medium cursor-pointer hover:text-white" onClick={() => handleSort('title')}>Title</th>
+                    <th className="px-6 py-4 font-medium cursor-pointer hover:text-foreground" onClick={() => handleSort('event_date')}>Date</th>
+                    <th className="px-6 py-4 font-medium cursor-pointer hover:text-foreground" onClick={() => handleSort('title')}>Title</th>
                     <th className="px-6 py-4 font-medium text-right">Actions</th>
                   </tr>
                 </thead>

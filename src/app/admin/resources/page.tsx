@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Plus, ShieldAlert, X, Check, Trash2, RotateCcw, Pencil, BookOpen, Upload } from "lucide-react";
+import { ArrowLeft, Plus, ShieldAlert, X, Check, Trash2, RotateCcw, Pencil, BookOpen, Upload, History, Flag } from "lucide-react";
 import { format } from "date-fns";
 import { GradientBackground } from "@/components/GradientBackground";
 import type { ResourceStatus } from "@/utils/resources";
@@ -33,6 +33,26 @@ type AdminResource = {
   borrow: AdminBorrow | null;
 };
 
+type WarehouseBorrow = {
+  id: string;
+  borrower_name: string;
+  borrowed_at: string;
+  expected_return_date: string;
+  returned_at: string | null;
+  returned_by: string | null;
+  condition_out: string | null;
+  condition_in: string | null;
+  damage_note: string | null;
+  flagged: boolean;
+  overdue: boolean;
+  resource: { id: string; title: string } | null;
+  member: { id: string; name: string; pnr_number: string } | null;
+};
+
+type ReturnTarget = { id: string; title: string };
+
+type HistoryFilter = "all" | "open" | "returned" | "flagged";
+
 type ResourceForm = {
   title: string;
   category_id: string;
@@ -52,6 +72,18 @@ export default function AdminResourcesPage() {
   const [error, setError] = useState("");
   const [editing, setEditing] = useState<AdminResource | null>(null);
   const [adding, setAdding] = useState(false);
+  const [borrows, setBorrows] = useState<WarehouseBorrow[]>([]);
+  const [historyFilter, setHistoryFilter] = useState<HistoryFilter>("all");
+  const [returning, setReturning] = useState<ReturnTarget | null>(null);
+
+  const loadBorrows = useCallback(async (filter: HistoryFilter) => {
+    const qs = filter === "all" ? "" : filter === "flagged" ? "?flagged=true" : `?status=${filter}`;
+    const res = await fetch(`/api/admin/resources/borrows${qs}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success) setBorrows(data.borrows);
+    }
+  }, []);
 
   const loadData = useCallback(async () => {
     setError("");
@@ -79,6 +111,13 @@ export default function AdminResourcesPage() {
     load();
   }, [loadData]);
 
+  useEffect(() => {
+    const run = async () => {
+      await loadBorrows(historyFilter);
+    };
+    run();
+  }, [historyFilter, loadBorrows]);
+
   const patch = async (resource_id: string, action: string, extra: Record<string, unknown> = {}) => {
     const res = await fetch("/api/admin/resources", {
       method: "PATCH",
@@ -93,25 +132,11 @@ export default function AdminResourcesPage() {
     }
   };
 
-  const markReturned = async (borrowId: string) => {
-    const res = await fetch("/api/resources/return", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ borrow_id: borrowId }),
-    });
-    if (res.ok) {
-      await loadData();
-    } else {
-      const data = await res.json();
-      alert(data.error || "Failed to mark returned.");
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 rounded-full border-2 border-white/10 border-t-white/70 animate-spin" />
+          <div className="w-10 h-10 rounded-full border-2 border-white/10 border-t-accent animate-spin" />
           <p className="text-muted font-light">Loading resources...</p>
         </div>
       </div>
@@ -203,7 +228,7 @@ export default function AdminResourcesPage() {
                   )}
                   <div className="flex gap-2 mt-1 flex-wrap">
                     {r.borrow && (
-                      <button onClick={() => markReturned(r.borrow!.id)} className="btn-secondary py-1.5 px-3 rounded-lg text-xs flex items-center gap-1">
+                      <button onClick={() => setReturning({ id: r.borrow!.id, title: r.title })} className="btn-secondary py-1.5 px-3 rounded-lg text-xs flex items-center gap-1">
                         <RotateCcw className="w-3 h-3" /> Mark returned
                       </button>
                     )}
@@ -237,6 +262,80 @@ export default function AdminResourcesPage() {
             </div>
           </section>
         )}
+
+        <section>
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-muted flex items-center gap-2">
+              <History className="w-4 h-4" /> Borrow History
+            </h2>
+            <div className="flex gap-1">
+              {(["all", "open", "returned", "flagged"] as HistoryFilter[]).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setHistoryFilter(f)}
+                  className={`px-3 py-1 rounded-lg text-xs capitalize ${
+                    historyFilter === f ? "bg-white/15 text-white" : "btn-secondary text-muted"
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {borrows.length === 0 ? (
+            <p className="text-faint text-sm">No borrow records.</p>
+          ) : (
+            <div className="glass-card rounded-xl overflow-x-auto">
+              <table className="w-full text-sm min-w-[820px]">
+                <thead>
+                  <tr className="text-left text-faint border-b border-white/10">
+                    <th className="px-4 py-3 font-medium">Item</th>
+                    <th className="px-4 py-3 font-medium">Borrower</th>
+                    <th className="px-4 py-3 font-medium">Taken</th>
+                    <th className="px-4 py-3 font-medium">Due / Returned</th>
+                    <th className="px-4 py-3 font-medium">Condition</th>
+                    <th className="px-4 py-3 font-medium">Notes</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {borrows.map((b) => (
+                    <tr key={b.id} className={b.flagged ? "bg-red-500/5" : ""}>
+                      <td className="px-4 py-3 text-white">{b.resource?.title ?? "—"}</td>
+                      <td className="px-4 py-3">
+                        <div className="text-foreground">{b.member?.name ?? b.borrower_name}</div>
+                        {b.member?.pnr_number && <div className="text-xs text-faint">{b.member.pnr_number}</div>}
+                      </td>
+                      <td className="px-4 py-3 text-muted">{format(new Date(b.borrowed_at), "d MMM yyyy")}</td>
+                      <td className="px-4 py-3">
+                        {b.returned_at ? (
+                          <span className="text-emerald-400">Returned {format(new Date(b.returned_at), "d MMM")}</span>
+                        ) : (
+                          <span className={b.overdue ? "text-red-400" : "text-amber-300"}>
+                            {b.overdue ? "Overdue " : "Due "}
+                            {format(new Date(b.expected_return_date), "d MMM")}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-muted">
+                        <span>out: {b.condition_out ?? "—"}</span>
+                        {b.returned_at && <span className="block">in: {b.condition_in ?? "—"}</span>}
+                      </td>
+                      <td className="px-4 py-3 text-xs">
+                        {b.flagged && (
+                          <span className="inline-flex items-center gap-1 text-red-400 font-medium">
+                            <Flag className="w-3 h-3" /> Flagged
+                          </span>
+                        )}
+                        {b.damage_note && <div className="text-faint">{b.damage_note}</div>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
       </main>
 
       <AnimatePresence>
@@ -283,8 +382,123 @@ export default function AdminResourcesPage() {
             }}
           />
         )}
+        {returning && (
+          <ReturnModal
+            target={returning}
+            onClose={() => setReturning(null)}
+            onDone={async () => {
+              setReturning(null);
+              await Promise.all([loadData(), loadBorrows(historyFilter)]);
+            }}
+          />
+        )}
       </AnimatePresence>
     </div>
+  );
+}
+
+function ReturnModal({
+  target,
+  onClose,
+  onDone,
+}: {
+  target: ReturnTarget;
+  onClose: () => void;
+  onDone: () => Promise<void>;
+}) {
+  const [conditionIn, setConditionIn] = useState("Good");
+  const [damageNote, setDamageNote] = useState("");
+  const [flagged, setFlagged] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [err, setErr] = useState("");
+
+  const submit = async () => {
+    setErr("");
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/resources/return", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          borrow_id: target.id,
+          condition_in: conditionIn,
+          damage_note: damageNote.trim() || undefined,
+          flagged,
+        }),
+      });
+      if (res.ok) {
+        await onDone();
+      } else {
+        const data = await res.json();
+        setErr(data.error || "Failed to mark returned.");
+      }
+    } catch {
+      setErr("Network error.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      onClick={() => !submitting && onClose()}
+    >
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-md glass-card rounded-2xl p-6 space-y-4"
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-white">Return “{target.title}”</h2>
+          <button onClick={onClose} className="text-muted hover:text-foreground">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div>
+          <label className="block text-sm text-muted mb-1">Condition on return</label>
+          <select
+            value={conditionIn}
+            onChange={(e) => setConditionIn(e.target.value)}
+            className="field w-full rounded-lg px-3 py-2 text-sm"
+          >
+            <option value="New">New</option>
+            <option value="Good">Good</option>
+            <option value="Fair">Fair</option>
+            <option value="Worn">Worn</option>
+            <option value="Damaged">Damaged</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm text-muted mb-1">Damage / notes (optional)</label>
+          <textarea
+            value={damageNote}
+            onChange={(e) => setDamageNote(e.target.value)}
+            rows={2}
+            className="field w-full rounded-lg px-3 py-2 text-sm resize-none"
+            placeholder="e.g. spine torn, page missing"
+          />
+        </div>
+
+        <label className="flex items-center gap-2 text-sm text-foreground">
+          <input type="checkbox" checked={flagged} onChange={(e) => setFlagged(e.target.checked)} />
+          <span className="inline-flex items-center gap-1"><Flag className="w-4 h-4 text-red-400" /> Flag for attention</span>
+        </label>
+
+        {err && <p className="text-sm text-red-400">{err}</p>}
+
+        <button onClick={submit} disabled={submitting} className="btn-primary w-full py-2.5 rounded-lg disabled:opacity-60">
+          {submitting ? "Saving…" : "Confirm Return"}
+        </button>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -380,7 +594,7 @@ function ResourceFormModal({
       >
         <div className="flex items-center justify-between mb-5">
           <h2 className="font-bold text-lg">{title}</h2>
-          <button onClick={onClose} className="text-muted hover:text-white">
+          <button onClick={onClose} className="text-muted hover:text-foreground">
             <X className="w-5 h-5" />
           </button>
         </div>

@@ -118,7 +118,7 @@ export default function RegisterPage() {
       <GradientBackground />
 
       <div className="w-full max-w-2xl mx-auto pt-8 pb-16 relative z-10">
-        <Link href="/" className="inline-flex items-center text-muted hover:text-white transition-colors mb-6">
+        <Link href="/" className="inline-flex items-center text-muted hover:text-foreground transition-colors mb-6">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Home
         </Link>

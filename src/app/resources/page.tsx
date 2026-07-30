@@ -102,7 +102,7 @@ export default function ResourcesPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 rounded-full border-2 border-white/10 border-t-white/70 animate-spin" />
+          <div className="w-9 h-9 rounded-full border-2 border-white/10 border-t-accent animate-spin" />
           <p className="text-muted font-light">Loading resources...</p>
         </div>
       </div>
@@ -175,8 +175,8 @@ export default function ResourcesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {filtered.map((r) => (
-              <ResourceCard key={r.id} resource={r} onBorrow={() => setBorrowTarget(r)} />
+            {filtered.map((r, i) => (
+              <ResourceCard key={r.id} resource={r} index={i} onBorrow={() => setBorrowTarget(r)} />
             ))}
           </div>
         )}
@@ -224,10 +224,15 @@ function CategoryChip({ label, active, onClick }: { label: string; active: boole
   );
 }
 
-function ResourceCard({ resource, onBorrow }: { resource: ResourceListItem; onBorrow: () => void }) {
+function ResourceCard({ resource, index, onBorrow }: { resource: ResourceListItem; index: number; onBorrow: () => void }) {
   const borrowed = resource.borrow !== null;
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card rounded-xl overflow-hidden flex flex-col">
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.28, ease: [0.23, 1, 0.32, 1], delay: Math.min(index, 8) * 0.04 }}
+      className="glass-card rounded-xl overflow-hidden flex flex-col"
+    >
       <div className="aspect-[3/4] bg-surface-2 relative flex items-center justify-center">
         {resource.cover_image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -277,6 +282,7 @@ function ModalShell({ title, onClose, children }: { title: string; onClose: () =
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      transition={{ duration: 0.15, ease: [0.23, 1, 0.32, 1] }}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
       onClick={onClose}
     >
@@ -284,13 +290,13 @@ function ModalShell({ title, onClose, children }: { title: string; onClose: () =
         initial={{ scale: 0.96, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.96, opacity: 0 }}
-        transition={{ type: "spring", bounce: 0, duration: 0.3 }}
+        transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
         className="glass-card rounded-2xl w-full max-w-md p-6 relative max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-5">
           <h2 className="font-bold text-lg">{title}</h2>
-          <button onClick={onClose} className="text-muted hover:text-white">
+          <button onClick={onClose} className="text-faint hover:text-foreground transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -314,6 +320,7 @@ function BorrowModal({
   const [name, setName] = useState(session.name);
   const [email, setEmail] = useState(session.email ?? "");
   const [returnDate, setReturnDate] = useState("");
+  const [conditionOut, setConditionOut] = useState("Good");
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState("");
 
@@ -329,6 +336,7 @@ function BorrowModal({
           borrower_name: name,
           borrower_email: email,
           expected_return_date: returnDate,
+          condition_out: conditionOut,
         }),
       });
       const data = await res.json();
@@ -355,6 +363,15 @@ function BorrowModal({
         </Field>
         <Field label="Expected return date">
           <input value={returnDate} onChange={(e) => setReturnDate(e.target.value)} type="date" min={todayIso()} className="field w-full rounded-lg px-3 py-2 text-sm" />
+        </Field>
+        <Field label="Condition when taken">
+          <select value={conditionOut} onChange={(e) => setConditionOut(e.target.value)} className="field w-full rounded-lg px-3 py-2 text-sm">
+            <option value="New">New</option>
+            <option value="Good">Good</option>
+            <option value="Fair">Fair</option>
+            <option value="Worn">Worn</option>
+            <option value="Damaged">Damaged</option>
+          </select>
         </Field>
         {err && <p className="text-sm text-red-400">{err}</p>}
         <button onClick={submit} disabled={submitting} className="btn-primary py-2.5 rounded-lg">

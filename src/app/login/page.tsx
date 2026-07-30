@@ -3,7 +3,7 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { LogIn, Fingerprint, Loader2, Mail } from "lucide-react";
+import { LogIn, Fingerprint, Loader2, Mail, Clock } from "lucide-react";
 import { OTPInput } from "@/components/OTPInput";
 import { GradientBackground } from "@/components/GradientBackground";
 
@@ -19,6 +19,7 @@ function LoginForm() {
   const adminErrorCode = useSearchParams().get("admin_error");
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
+  const [targetHours, setTargetHours] = useState(4);
   const [error, setError] = useState(
     adminErrorCode ? ADMIN_ERRORS[adminErrorCode] ?? "Admin login failed. Please try again." : "",
   );
@@ -71,7 +72,7 @@ function LoginForm() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp }),
+        body: JSON.stringify({ email, otp, target_minutes: targetHours * 60 }),
       });
 
       const data = await res.json();
@@ -109,8 +110,9 @@ function LoginForm() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
               className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm p-3 rounded-xl text-center"
             >
               {error}
@@ -130,6 +132,30 @@ function LoginForm() {
           <div className="space-y-2">
             <label className="text-sm font-medium text-muted ml-1">One-Time Password (OTP)</label>
             <OTPInput value={otp} onChange={setOtp} length={6} />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-muted ml-1 flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5" />
+              Session goal
+            </label>
+            <div className="grid grid-cols-4 gap-2">
+              {[2, 4, 6, 8].map((h) => (
+                <button
+                  key={h}
+                  type="button"
+                  onClick={() => setTargetHours(h)}
+                  className={`py-2 rounded-xl text-sm font-medium border transition-colors ${
+                    targetHours === h
+                      ? "bg-accent/15 border-accent/40 text-accent"
+                      : "btn-secondary text-foreground"
+                  }`}
+                >
+                  {h}h
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-faint ml-1">Just fills your progress bar — you&apos;re never logged out automatically.</p>
           </div>
 
           <button

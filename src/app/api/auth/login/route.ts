@@ -4,10 +4,20 @@ import { startAttendanceSession } from '@/utils/attendanceSession';
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, otp } = await req.json();
+    const { email, otp, target_minutes } = await req.json();
 
     if (!email || !otp) {
       return NextResponse.json({ error: 'Missing email or otp' }, { status: 400 });
+    }
+
+    // Personal target for the session progress bar (visual only — never forces a
+    // logout). Clamp to a sane 30 min – 12 h range; fall back handled downstream.
+    let targetMinutes: number | undefined;
+    if (target_minutes !== undefined) {
+      if (!Number.isInteger(target_minutes) || target_minutes < 30 || target_minutes > 720) {
+        return NextResponse.json({ error: 'Invalid target duration.' }, { status: 400 });
+      }
+      targetMinutes = target_minutes;
     }
 
     const supabase = getSupabaseAdmin();
@@ -51,7 +61,7 @@ export async function POST(req: NextRequest) {
       .eq('id', validOtp.id);
 
     // 4. record the attendance session and mint the JWT cookie
-    const { error: sessionError } = await startAttendanceSession(member, otp);
+    const { error: sessionError } = await startAttendanceSession(member, otp, targetMinutes);
     if (sessionError) {
       return NextResponse.json({ error: sessionError }, { status: 500 });
     }

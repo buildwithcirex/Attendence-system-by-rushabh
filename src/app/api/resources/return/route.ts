@@ -11,10 +11,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Not authenticated.' }, { status: 401 });
     }
 
-    const { borrow_id } = await req.json();
+    const body = await req.json();
+    const borrow_id = body.borrow_id;
     if (!borrow_id || typeof borrow_id !== 'string') {
       return NextResponse.json({ error: 'Missing borrow_id.' }, { status: 400 });
     }
+
+    const conditionIn = typeof body.condition_in === 'string' ? body.condition_in.trim() || null : null;
+    const damageNote = typeof body.damage_note === 'string' ? body.damage_note.trim() || null : null;
+    const flagged = body.flagged === true;
 
     const supabase = getSupabaseAdmin();
 
@@ -39,7 +44,13 @@ export async function POST(req: NextRequest) {
 
     const { error: updateErr } = await supabase
       .from('resource_borrows')
-      .update({ returned_at: new Date().toISOString(), returned_by: isAdmin && !isOwner ? 'admin' : 'borrower' })
+      .update({
+        returned_at: new Date().toISOString(),
+        returned_by: isAdmin && !isOwner ? 'admin' : 'borrower',
+        condition_in: conditionIn,
+        damage_note: damageNote,
+        flagged,
+      })
       .eq('id', borrow_id)
       .is('returned_at', null);
 

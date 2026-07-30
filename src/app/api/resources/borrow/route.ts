@@ -71,12 +71,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const conditionOut = typeof body.condition_out === 'string' ? body.condition_out.trim() || null : null;
+
     const { error: insertErr } = await supabase.from('resource_borrows').insert({
       resource_id,
       member_id: session.member_id,
       borrower_name: borrowerName,
       borrower_email: borrowerEmailRaw || null,
       expected_return_date: expectedReturnDate,
+      condition_out: conditionOut,
     });
 
     if (insertErr) {

@@ -111,7 +111,7 @@ export default function AdminSettingsPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 rounded-full border-2 border-white/10 border-t-white/70 animate-spin" />
+          <div className="w-10 h-10 rounded-full border-2 border-white/10 border-t-accent animate-spin" />
           <p className="text-muted font-light">Loading settings...</p>
         </div>
       </div>

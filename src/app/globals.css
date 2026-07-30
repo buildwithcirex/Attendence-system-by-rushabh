@@ -113,6 +113,48 @@ h2 {
 }
 
 /*
+  Linear-style list surfaces. Flatter and denser than .glass-card — a solid
+  charcoal panel with a hairline border, rows separated by faint dividers and
+  lit on hover. Used by the Projects table and other list views.
+*/
+.panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+}
+
+.list-row {
+  transition: background-color 120ms ease-out;
+}
+.list-row:hover {
+  background: rgba(241, 254, 200, 0.035);
+}
+
+/* Small-caps muted column labels above a table body. */
+.col-head {
+  color: var(--color-faint);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+/* Rounded tab/segmented control used in headers (All projects, Overview…). */
+.seg {
+  color: var(--color-muted);
+  border-radius: 8px;
+  font-weight: 500;
+  transition: background-color 140ms ease-out, color 140ms ease-out;
+}
+.seg:hover {
+  background: rgba(241, 254, 200, 0.05);
+  color: var(--color-foreground);
+}
+.seg[data-active="true"] {
+  background: rgba(241, 254, 200, 0.09);
+  color: var(--color-foreground);
+}
+
+/*
   Animated mesh-gradient background — slow-drifting blurred blobs in the
   Cosmic × Vanilla palette with a restrained vanilla glow. Sits behind page
   content (z-index: -1) and only animates compositor-friendly transforms.

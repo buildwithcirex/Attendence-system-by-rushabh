@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, LogOut, Loader2 } from "lucide-react";
 import { format } from "date-fns";
@@ -12,10 +12,63 @@ interface LogoutModalProps {
   loginTime: string;
 }
 
+type SummaryTask = {
+  title: string;
+  status: "todo" | "in_progress" | "done";
+  updated_at: string | null;
+};
+
+// A bulleted recap of what the member moved to in-progress/done during this session
+// (task.updated_at at or after login_time), to seed the checkout description.
+function buildSummary(tasks: SummaryTask[], loginTime: string): string {
+  const since = new Date(loginTime).getTime();
+  const touched = tasks.filter(
+    (t) => t.updated_at && new Date(t.updated_at).getTime() >= since && t.status !== "todo",
+  );
+  const done = touched.filter((t) => t.status === "done").map((t) => `- ${t.title}`);
+  const inProgress = touched.filter((t) => t.status === "in_progress").map((t) => `- ${t.title}`);
+
+  const sections: string[] = [];
+  if (done.length) sections.push(`Completed:\n${done.join("\n")}`);
+  if (inProgress.length) sections.push(`In progress:\n${inProgress.join("\n")}`);
+  return sections.join("\n\n");
+}
+
 export function LogoutModal({ isOpen, onClose, onSuccess, loginTime }: LogoutModalProps) {
   const [workDescription, setWorkDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const prefilledRef = useRef(false);
+
+  // On open, seed the description from tasks touched this session. Only fills an
+  // untouched box, so a member's own typing is never overwritten.
+  useEffect(() => {
+    if (!isOpen) {
+      prefilledRef.current = false;
+      return;
+    }
+    if (prefilledRef.current) return;
+    prefilledRef.current = true;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/tasks");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (cancelled || !data.success || !loginTime) return;
+        const summary = buildSummary(data.tasks as SummaryTask[], loginTime);
+        if (summary) {
+          setWorkDescription((current) => (current.trim() === "" ? `${summary}\n\n` : current));
+        }
+      } catch {
+        // non-critical: fall back to an empty box
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, loginTime]);
 
   const timeIn = loginTime ? new Date(loginTime) : new Date();
   const timeOut = new Date();
