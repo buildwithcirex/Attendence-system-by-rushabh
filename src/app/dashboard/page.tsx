@@ -7,6 +7,7 @@ import { LogoutModal } from "@/components/LogoutModal";
 import { Navbar } from "@/components/Navbar";
 import { TaskBar } from "@/components/TaskBar";
 import { CombinedCalendar } from "@/components/CombinedCalendar";
+import { GradientBackground } from "@/components/GradientBackground";
 import { format } from "date-fns";
 import type { SessionPayload } from "@/utils/session";
 
@@ -102,8 +103,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen p-4 md:p-8 flex flex-col relative overflow-hidden">
-      {/* Faint monochrome light source */}
-      <div className="absolute top-[-25%] left-1/2 -translate-x-1/2 w-[60%] h-[50%] rounded-full bg-white/[0.03] blur-[160px] -z-10" />
+      <GradientBackground />
 
       <Navbar 
         session={session} 

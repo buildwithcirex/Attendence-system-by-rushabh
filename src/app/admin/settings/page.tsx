@@ -4,26 +4,36 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowLeft, Plus, ShieldAlert } from "lucide-react";
+import { GradientBackground } from "@/components/GradientBackground";
 
 type OptionRow = { id: string; name: string; is_active: boolean };
-type OptionType = "branches" | "years" | "positions";
+type OptionType = "branches" | "years" | "positions" | "resource_categories";
 
-const SECTIONS: { type: OptionType; label: string }[] = [
-  { type: "branches", label: "Branches" },
-  { type: "years", label: "Years" },
-  { type: "positions", label: "Positions" },
+const SECTIONS: { type: OptionType; label: string; singular: string }[] = [
+  { type: "branches", label: "Branches", singular: "branch" },
+  { type: "years", label: "Years", singular: "year" },
+  { type: "positions", label: "Positions", singular: "position" },
+  { type: "resource_categories", label: "Resource Categories", singular: "category" },
 ];
 
 export default function AdminSettingsPage() {
   const router = useRouter();
-  const [branches, setBranches] = useState<OptionRow[]>([]);
-  const [years, setYears] = useState<OptionRow[]>([]);
-  const [positions, setPositions] = useState<OptionRow[]>([]);
+  const [lists, setLists] = useState<Record<OptionType, OptionRow[]>>({
+    branches: [],
+    years: [],
+    positions: [],
+    resource_categories: [],
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [newNames, setNewNames] = useState<Record<OptionType, string>>({ branches: "", years: "", positions: "" });
+  const [newNames, setNewNames] = useState<Record<OptionType, string>>({
+    branches: "",
+    years: "",
+    positions: "",
+    resource_categories: "",
+  });
 
-  const listFor = (type: OptionType) => (type === "branches" ? branches : type === "years" ? years : positions);
+  const listFor = (type: OptionType) => lists[type];
 
   const loadOptions = useCallback(async () => {
     setLoading(true);
@@ -35,9 +45,12 @@ export default function AdminSettingsPage() {
       }
       const data = await res.json();
       if (data.success) {
-        setBranches(data.branches);
-        setYears(data.years);
-        setPositions(data.positions);
+        setLists({
+          branches: data.branches,
+          years: data.years,
+          positions: data.positions,
+          resource_categories: data.resource_categories,
+        });
       } else {
         throw new Error(data.error || "Failed to load options");
       }
@@ -68,7 +81,7 @@ export default function AdminSettingsPage() {
         setNewNames((prev) => ({ ...prev, [type]: "" }));
         await loadOptions();
       } else {
-        alert(`Failed to add ${type.slice(0, -1)}.`);
+        alert("Failed to add entry. It may already exist.");
       }
     } catch (err) {
       console.error(err);
@@ -96,7 +109,7 @@ export default function AdminSettingsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 rounded-full border-2 border-white/10 border-t-white/70 animate-spin" />
           <p className="text-muted font-light">Loading settings...</p>
@@ -107,7 +120,7 @@ export default function AdminSettingsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center flex-col gap-4 bg-[#0a0a0a]">
+      <div className="min-h-screen flex items-center justify-center flex-col gap-4 bg-background">
         <ShieldAlert className="w-16 h-16 text-red-500" />
         <h2 className="text-xl font-bold text-white">Access Denied</h2>
         <p className="text-muted">{error}</p>
@@ -122,8 +135,8 @@ export default function AdminSettingsPage() {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-8 flex flex-col relative overflow-hidden text-white bg-[#0a0a0a]">
-      <div className="absolute top-[-25%] left-1/2 -translate-x-1/2 w-[60%] h-[50%] rounded-full bg-white/[0.03] blur-[160px] -z-10" />
+    <div className="min-h-screen p-4 md:p-8 flex flex-col relative overflow-hidden text-white bg-background">
+      <GradientBackground />
 
       <header className="flex justify-between items-center mb-6 glass-card rounded-2xl p-4 px-6">
         <div>
@@ -139,8 +152,8 @@ export default function AdminSettingsPage() {
         </button>
       </header>
 
-      <main className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6">
-        {SECTIONS.map(({ type, label }) => (
+      <main className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {SECTIONS.map(({ type, label, singular }) => (
           <motion.div
             key={type}
             initial={{ opacity: 0, y: 10 }}
@@ -155,7 +168,7 @@ export default function AdminSettingsPage() {
               <input
                 value={newNames[type]}
                 onChange={(e) => setNewNames((prev) => ({ ...prev, [type]: e.target.value }))}
-                placeholder={`Add ${label.toLowerCase().slice(0, -1)}...`}
+                placeholder={`Add ${singular}...`}
                 className="field flex-1 rounded-lg px-3 py-2 text-sm"
               />
               <button

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/utils/session";
 import Link from "next/link";
 import { LogIn, UserPlus } from "lucide-react";
+import { GradientBackground } from "@/components/GradientBackground";
 
 export default async function Home() {
   const session = await getSession();
@@ -11,9 +12,8 @@ export default async function Home() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-[#0a0a0a]">
-      {/* Subtle monochrome depth — a faint light source, no color */}
-      <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[70%] h-[45%] rounded-full bg-white/[0.04] blur-[140px]" />
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-background">
+      <GradientBackground />
 
       <div className="w-full max-w-md glass-card rounded-2xl p-8 relative z-10 text-center">
         <div className="mb-8">

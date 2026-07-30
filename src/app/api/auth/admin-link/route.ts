@@ -8,20 +8,23 @@ const ALLOWED_DOMAIN = '@kccemsr.edu.in';
 // which addresses belong to admins.
 export async function POST(req: NextRequest) {
   try {
-    const { email } = await req.json();
+    const body = await req.json();
+    const email = typeof body.email === 'string' ? body.email.trim() : '';
 
-    if (typeof email !== 'string' || !email.endsWith(ALLOWED_DOMAIN)) {
+    if (!email.endsWith(ALLOWED_DOMAIN)) {
       return NextResponse.json(
         { error: `Enter a valid ${ALLOWED_DOMAIN} email.` },
         { status: 400 },
       );
     }
 
+    // Match case-insensitively so the link is sent regardless of how the
+    // admin typed their email vs. how it is stored.
     const supabase = getSupabaseAdmin();
     const { data: member, error: memberError } = await supabase
       .from('members')
       .select('id, role, status')
-      .eq('email', email)
+      .ilike('email', email)
       .maybeSingle();
 
     const isEligibleAdmin =

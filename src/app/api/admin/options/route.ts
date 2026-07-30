@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/utils/session';
 import { getSupabaseAdmin } from '@/utils/supabase';
 
-const OPTION_TABLES = ['branches', 'years', 'positions'] as const;
+const OPTION_TABLES = ['branches', 'years', 'positions', 'resource_categories'] as const;
 type OptionTable = (typeof OPTION_TABLES)[number];
 
 function isOptionTable(value: unknown): value is OptionTable {
@@ -17,13 +17,14 @@ export async function GET() {
     }
 
     const supabase = getSupabaseAdmin();
-    const [branches, years, positions] = await Promise.all([
+    const [branches, years, positions, resourceCategories] = await Promise.all([
       supabase.from('branches').select('*').order('name'),
       supabase.from('years').select('*').order('name'),
       supabase.from('positions').select('*').order('name'),
+      supabase.from('resource_categories').select('*').order('name'),
     ]);
 
-    if (branches.error || years.error || positions.error) {
+    if (branches.error || years.error || positions.error || resourceCategories.error) {
       return NextResponse.json({ error: 'Failed to fetch options' }, { status: 500 });
     }
 
@@ -32,6 +33,7 @@ export async function GET() {
       branches: branches.data,
       years: years.data,
       positions: positions.data,
+      resource_categories: resourceCategories.data,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Internal Server Error';
