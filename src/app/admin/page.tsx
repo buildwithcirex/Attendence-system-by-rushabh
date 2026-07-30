@@ -316,8 +316,9 @@ export default function AdminPage() {
       />
 
       {/* Tabs & Actions */}
-      <div className="flex flex-wrap justify-between items-center gap-4 mb-6 pt-32">
-        <div className="flex gap-2">
+      <div className="flex flex-col gap-4 mb-6 pt-24 md:pt-32">
+        <div className="flex flex-wrap justify-between items-center gap-4">
+          <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setActiveTab('users')}
           className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
@@ -386,8 +387,22 @@ export default function AdminPage() {
             <span className="hidden sm:inline">Refresh</span>
           </button>
         </div>
-
       </div>
+      </div>
+
+      {/* Task Assignment Form (Moved to top) */}
+      {activeTab === 'tasks' && (
+        <div className="mb-6">
+          <AssignTaskForm users={users} onAssign={assignTask} />
+        </div>
+      )}
+
+      {/* Calendar Add Form (Moved to top) */}
+      {activeTab === 'calendar' && (
+        <div className="mb-6">
+          <AddCalendarForm onAdd={addCalendarEvent} />
+        </div>
+      )}
 
       <main className="flex-1 overflow-auto">
         <motion.div
@@ -605,16 +620,6 @@ export default function AdminPage() {
         </motion.div>
       </main>
 
-      {/* Task Assignment Form Modal */}
-      {activeTab === 'tasks' && (
-        <AssignTaskForm users={users} onAssign={assignTask} />
-      )}
-
-      {/* Calendar Add Form */}
-      {activeTab === 'calendar' && (
-        <AddCalendarForm onAdd={addCalendarEvent} />
-      )}
-
       {editingUser && (
         <EditUserModal
           user={editingUser}
@@ -644,7 +649,7 @@ function AssignTaskForm({ users, onAssign }: { users: Member[], onAssign: (userI
   };
 
   return (
-    <div className="glass-card rounded-xl p-6 mt-6 max-w-2xl">
+    <div className="glass-card rounded-xl p-6 max-w-2xl">
       <h3 className="text-lg font-bold mb-4">Assign New Task</h3>
       <form onSubmit={handleSubmit} className="flex gap-4 items-end flex-wrap md:flex-nowrap">
         <div className="space-y-2 flex-1 min-w-[200px]">
@@ -699,7 +704,7 @@ function AddCalendarForm({ onAdd }: { onAdd: (title: string, event_date: string)
   };
 
   return (
-    <div className="glass-card rounded-xl p-6 mt-6 max-w-2xl">
+    <div className="glass-card rounded-xl p-6 max-w-2xl">
       <h3 className="text-lg font-bold mb-4">Add E-Cell Event</h3>
       <form onSubmit={handleSubmit} className="flex gap-4 items-end flex-wrap md:flex-nowrap">
         <div className="space-y-2 flex-1 min-w-[200px]">
