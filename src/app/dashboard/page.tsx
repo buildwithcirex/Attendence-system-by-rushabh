@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { Clock } from "lucide-react";
 import { LogoutModal } from "@/components/LogoutModal";
 import { Navbar } from "@/components/Navbar";
 import { TaskBar } from "@/components/TaskBar";
