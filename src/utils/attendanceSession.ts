@@ -21,6 +21,31 @@ export async function startAttendanceSession(
   const supabase = getSupabaseAdmin();
   const login_time = new Date().toISOString();
 
+  // Close any session left open by a previous forgotten logout so it
+  // doesn't keep counting as "active" forever or overlap with the new one.
+  const { data: staleSessions } = await supabase
+    .from('sessions')
+    .select('id, login_time')
+    .eq('member_id', member.id)
+    .is('logout_time', null);
+
+  if (staleSessions && staleSessions.length > 0) {
+    await Promise.all(
+      staleSessions.map((s) =>
+        supabase
+          .from('sessions')
+          .update({
+            logout_time: login_time,
+            logout_type: 'stale',
+            duration_minutes: Math.floor(
+              (new Date(login_time).getTime() - new Date(s.login_time).getTime()) / (1000 * 60),
+            ),
+          })
+          .eq('id', s.id),
+      ),
+    );
+  }
+
   const { data, error } = await supabase
     .from('sessions')
     .insert({
