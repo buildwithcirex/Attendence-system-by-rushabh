@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
     .from('sessions')
     .select('id, login_time')
     .is('logout_time', null)
+    .is('deleted_at', null)
     .lt('login_time', cutoff);
 
   if (fetchError) {

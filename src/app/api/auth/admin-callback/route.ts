@@ -43,6 +43,7 @@ export async function GET(req: NextRequest) {
       .from('members')
       .select('id, pnr_number, name, email, role, status')
       .ilike('email', email)
+      .is('deleted_at', null)
       .maybeSingle();
 
     if (

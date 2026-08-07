@@ -2,21 +2,28 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/utils/session';
 import { getSupabaseAdmin } from '@/utils/supabase';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const admin = await requireAdmin();
     if (!admin) {
       return NextResponse.json({ error: 'Unauthorized access.' }, { status: 403 });
     }
 
+    const { searchParams } = new URL(req.url);
+    const showDeleted = searchParams.get('view') === 'deleted';
+
     const supabase = getSupabaseAdmin();
-    const { data, error } = await supabase
+    let query = supabase
       .from('tasks')
       .select(`
         *,
         member:members ( id, name, pnr_number )
       `)
       .order('created_at', { ascending: false });
+
+    query = showDeleted ? query.not('deleted_at', 'is', null) : query.is('deleted_at', null);
+
+    const { data, error } = await query;
 
     if (error) {
       return NextResponse.json({ error: 'Failed to fetch tasks' }, { status: 500 });
@@ -69,13 +76,30 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { task_id, status } = body;
+    const { task_id, status, action } = body;
 
-    if (!task_id || !status) {
-      return NextResponse.json({ error: 'Missing task_id or status' }, { status: 400 });
+    if (!task_id) {
+      return NextResponse.json({ error: 'Missing task_id' }, { status: 400 });
     }
 
     const supabase = getSupabaseAdmin();
+
+    if (action === 'restore') {
+      const { error } = await supabase
+        .from('tasks')
+        .update({ deleted_at: null, deleted_via_member_cascade: false })
+        .eq('id', task_id);
+
+      if (error) {
+        return NextResponse.json({ error: 'Failed to restore task' }, { status: 500 });
+      }
+      return NextResponse.json({ success: true });
+    }
+
+    if (!status) {
+      return NextResponse.json({ error: 'Missing status' }, { status: 400 });
+    }
+
     const { error } = await supabase
       .from('tasks')
       .update({ status })
@@ -109,7 +133,7 @@ export async function DELETE(req: NextRequest) {
     const supabase = getSupabaseAdmin();
     const { error } = await supabase
       .from('tasks')
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq('id', task_id);
 
     if (error) {

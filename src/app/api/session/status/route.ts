@@ -10,6 +10,19 @@ export async function GET() {
       return NextResponse.json({ authenticated: false }, { status: 401 });
     }
 
+    const supabase = getSupabaseAdmin();
+
+    const { data: member } = await supabase
+      .from('members')
+      .select('deleted_at')
+      .eq('id', session.member_id)
+      .single();
+
+    if (member?.deleted_at) {
+      await clearSession();
+      return NextResponse.json({ authenticated: false, reason: 'account_deleted' }, { status: 401 });
+    }
+
     const loginTime = new Date(session.login_time).getTime();
     const now = Date.now();
     const elapsed = now - loginTime;
@@ -17,7 +30,6 @@ export async function GET() {
 
     if (elapsed >= MAX_DURATION) {
       // Auto-logout
-      const supabase = getSupabaseAdmin();
       await supabase
         .from('sessions')
         .update({

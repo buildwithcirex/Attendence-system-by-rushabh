@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
       .from('members')
       .select('*')
       .ilike('email', email)
+      .is('deleted_at', null)
       .single();
 
     if (memberError || !member) {

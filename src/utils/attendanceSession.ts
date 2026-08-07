@@ -27,7 +27,8 @@ export async function startAttendanceSession(
     .from('sessions')
     .select('id, login_time')
     .eq('member_id', member.id)
-    .is('logout_time', null);
+    .is('logout_time', null)
+    .is('deleted_at', null);
 
   if (staleSessions && staleSessions.length > 0) {
     await Promise.all(

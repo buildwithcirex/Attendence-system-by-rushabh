@@ -8,6 +8,7 @@ export async function GET() {
     const { data, error } = await supabase
       .from('calendar_events')
       .select('id, title, event_date')
+      .is('deleted_at', null)
       .order('event_date', { ascending: true });
 
     if (error) {

@@ -25,6 +25,7 @@ export async function POST(req: NextRequest) {
       .from('members')
       .select('id, role, status')
       .ilike('email', email)
+      .is('deleted_at', null)
       .maybeSingle();
 
     const isEligibleAdmin =
